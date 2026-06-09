@@ -19,6 +19,7 @@ export default function App() {
   const [mol, setMol] = useState(null)   // { sdf, cid, is2d }
   const [info, setInfo] = useState(null)
   const [viewMode, setViewMode] = useState('ball-stick')
+  const [showLabels, setShowLabels] = useState(true)
   const viewerRef = useRef(null)
 
   const search = useCallback(async (q) => {
@@ -97,6 +98,17 @@ export default function App() {
               ))}
             </div>
 
+            <label className="toggle-row">
+              <span className="toggle-label">Atom Labels</span>
+              <button
+                className={`toggle-btn ${showLabels ? 'on' : ''}`}
+                onClick={() => setShowLabels(v => !v)}
+                aria-pressed={showLabels}
+              >
+                <span className="toggle-knob" />
+              </button>
+            </label>
+
             <button className="reset-btn" onClick={() => viewerRef.current?.resetView()}>
               Reset View
             </button>
@@ -147,7 +159,7 @@ export default function App() {
                 No 3D data available — showing 2D projection
               </div>
             )}
-            <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} />
+            <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} />
           </>
         )}
       </div>

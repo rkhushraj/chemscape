@@ -17,10 +17,28 @@ function applyStyle(viewer, viewMode) {
   }
 }
 
-const MolViewer = forwardRef(function MolViewer({ sdf, viewMode }, ref) {
+function addAtomLabels(viewer) {
+  viewer.removeAllLabels()
+  const model = viewer.getModel()
+  if (!model) return
+  model.atoms.forEach(atom => {
+    if (!atom.elem) return
+    viewer.addLabel(atom.elem, {
+      position: { x: atom.x, y: atom.y, z: atom.z },
+      fontSize: 11,
+      fontColor: 'white',
+      backgroundOpacity: 0.55,
+      backgroundColor: 'black',
+      borderThickness: 0,
+      inFront: true,
+      showBackground: true,
+    })
+  })
+}
+
+const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
-  const surfaceRef = useRef(null)
 
   useImperativeHandle(ref, () => ({
     resetView: () => {
@@ -29,7 +47,6 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode }, ref) {
     },
   }))
 
-  // Init viewer once
   useEffect(() => {
     if (!containerRef.current) return
     const viewer = $3Dmol.createViewer(containerRef.current, {
@@ -40,28 +57,33 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode }, ref) {
     return () => { viewer.clear() }
   }, [])
 
-  // Load SDF whenever it changes
   useEffect(() => {
     const viewer = viewerRef.current
     if (!viewer || !sdf) return
     viewer.clear()
     viewer.removeAllSurfaces()
-    surfaceRef.current = null
     viewer.addModel(sdf, 'sdf')
     applyStyle(viewer, viewMode)
+    if (showLabels) addAtomLabels(viewer)
     viewer.zoomTo()
     viewer.render()
   }, [sdf])
 
-  // Switch view mode without reloading the model
   useEffect(() => {
     const viewer = viewerRef.current
     if (!viewer || !sdf) return
     viewer.removeAllSurfaces()
-    surfaceRef.current = null
     applyStyle(viewer, viewMode)
+    if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
     viewer.render()
   }, [viewMode])
+
+  useEffect(() => {
+    const viewer = viewerRef.current
+    if (!viewer || !sdf) return
+    if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
+    viewer.render()
+  }, [showLabels])
 
   return (
     <div
