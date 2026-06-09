@@ -30,6 +30,41 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.mode-switch {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
+}
+.mode-switch button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 0;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.mode-switch button.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.suggestions-col {
+  flex-direction: column;
+}
+.suggestions-col .suggestion-chip {
+  text-align: left;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: normal;
+}
+
 .brand-name {
   font-size: 20px;
   font-weight: 700;
@@ -259,6 +294,141 @@
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
+
+/* ── Reaction viewer ─────────────────────── */
+.reaction-viewer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 32px;
+}
+
+.reaction-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.mol-card {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.9s ease;
+}
+.mol-card-viewer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.mol-card-name {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text2);
+  padding: 6px;
+  border-top: 1px solid var(--border);
+}
+.mol-coeff {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent2);
+  z-index: 5;
+}
+.mol-card-error {
+  font-size: 12px;
+  color: var(--error);
+  text-align: center;
+  padding: 0 12px;
+}
+
+.mol-card.reacting,
+.mol-card.consumed {
+  transform: scale(0.7);
+  opacity: 0.2;
+}
+.mol-card.pending {
+  transform: scale(0.85);
+  opacity: 0.25;
+}
+.mol-card.formed {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.reaction-arrow {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 64px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  flex-shrink: 0;
+  transition: background 0.4s ease;
+}
+.arrow-shaft {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.reaction-arrow.reacting .arrow-shaft,
+.reaction-arrow.done .arrow-shaft {
+  opacity: 1;
+  animation: arrow-flow 1.1s linear infinite;
+}
+.arrow-head {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--border);
+  font-size: 14px;
+  transition: color 0.4s ease;
+}
+.reaction-arrow.reacting .arrow-head,
+.reaction-arrow.done .arrow-head {
+  color: var(--accent2);
+}
+@keyframes arrow-flow {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.play-btn {
+  background: linear-gradient(135deg, var(--accent), #8b80ff);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.play-btn:hover { opacity: 0.9; }
+.play-btn:active { transform: scale(0.98); }
+.play-btn:disabled { opacity: 0.6; cursor: default; }
 
 .notice-banner {
   position: absolute;

@@ -36,7 +36,7 @@ function addAtomLabels(viewer) {
   })
 }
 
-const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels }, ref) {
+const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spinning }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
 
@@ -67,6 +67,7 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels }, r
     if (showLabels) addAtomLabels(viewer)
     viewer.zoomTo()
     viewer.render()
+    if (spinning) viewer.spin('y', 0.6)
   }, [sdf])
 
   useEffect(() => {
@@ -84,6 +85,13 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels }, r
     if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
     viewer.render()
   }, [showLabels])
+
+  useEffect(() => {
+    const viewer = viewerRef.current
+    if (!viewer || !sdf) return
+    if (spinning) viewer.spin('y', 0.6)
+    else viewer.spin(false)
+  }, [spinning])
 
   return (
     <div

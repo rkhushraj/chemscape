@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
 import MolViewer from './MolViewer.jsx'
+import ReactionViewer from './ReactionViewer.jsx'
 import { fetchCompound, fetchCompoundInfo } from './pubchem.js'
+import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
 import './App.css'
 
 const VIEW_MODES = [
@@ -13,6 +15,8 @@ const VIEW_MODES = [
 const SUGGESTIONS = ['Water', 'Caffeine', 'Aspirin', 'Glucose', 'Ethanol', 'ATP', 'Penicillin', 'Dopamine']
 
 export default function App() {
+  const [mode, setMode] = useState('compound') // 'compound' | 'reaction'
+
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -21,6 +25,10 @@ export default function App() {
   const [viewMode, setViewMode] = useState('ball-stick')
   const [showLabels, setShowLabels] = useState(true)
   const viewerRef = useRef(null)
+
+  const [reactionInput, setReactionInput] = useState('')
+  const [reaction, setReaction] = useState(null)
+  const [reactionError, setReactionError] = useState(null)
 
   const search = useCallback(async (q) => {
     const trimmed = q.trim()
@@ -46,6 +54,22 @@ export default function App() {
     search(query)
   }
 
+  const handleReactionSubmit = (e) => {
+    e.preventDefault()
+    runReaction(reactionInput)
+  }
+
+  const runReaction = (input) => {
+    const parsed = parseReaction(input)
+    if (!parsed) {
+      setReactionError('Use the format: Reactant + Reactant -> Product + Product')
+      setReaction(null)
+      return
+    }
+    setReactionError(null)
+    setReaction(parsed)
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
@@ -54,6 +78,22 @@ export default function App() {
           <span className="brand-name">ChemScape</span>
         </div>
 
+        <div className="mode-switch">
+          <button
+            className={mode === 'compound' ? 'active' : ''}
+            onClick={() => setMode('compound')}
+          >
+            Compound
+          </button>
+          <button
+            className={mode === 'reaction' ? 'active' : ''}
+            onClick={() => setMode('reaction')}
+          >
+            Reaction
+          </button>
+        </div>
+
+        {mode === 'compound' && (
         <form onSubmit={handleSubmit} className="search-form">
           <input
             className="search-input"
@@ -67,10 +107,11 @@ export default function App() {
             {loading ? <span className="spinner" /> : 'Search'}
           </button>
         </form>
+        )}
 
-        {error && <div className="error-box">{error}</div>}
+        {mode === 'compound' && error && <div className="error-box">{error}</div>}
 
-        {!mol && !loading && !error && (
+        {mode === 'compound' && !mol && !loading && !error && (
           <div className="suggestions">
             <p className="suggestions-label">Try</p>
             <div className="suggestions-grid">
@@ -83,7 +124,42 @@ export default function App() {
           </div>
         )}
 
-        {mol && (
+        {mode === 'reaction' && (
+          <>
+            <form onSubmit={handleReactionSubmit} className="search-form">
+              <input
+                className="search-input"
+                type="text"
+                placeholder="CH4 + 2 O2 -> CO2 + 2 H2O"
+                value={reactionInput}
+                onChange={e => setReactionInput(e.target.value)}
+                autoFocus
+              />
+              <button className="search-btn" type="submit">
+                Visualize
+              </button>
+            </form>
+
+            {reactionError && <div className="error-box">{reactionError}</div>}
+
+            <div className="suggestions">
+              <p className="suggestions-label">Try</p>
+              <div className="suggestions-grid suggestions-col">
+                {EXAMPLE_REACTIONS.map(r => (
+                  <button
+                    key={r}
+                    className="suggestion-chip"
+                    onClick={() => { setReactionInput(r); runReaction(r) }}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {mode === 'compound' && mol && (
           <>
             <div className="view-modes">
               <p className="section-label">View Mode</p>
@@ -115,7 +191,7 @@ export default function App() {
           </>
         )}
 
-        {info && (
+        {mode === 'compound' && info && (
           <div className="info-panel">
             <p className="section-label">Properties</p>
             <div className="info-grid">
@@ -140,19 +216,19 @@ export default function App() {
       </div>
 
       <div className="viewer-area">
-        {!mol && !loading && (
+        {mode === 'compound' && !mol && !loading && (
           <div className="empty-state">
             <div className="empty-icon">⬡</div>
             <p>Search for any compound or element to explore its 3D structure</p>
           </div>
         )}
-        {loading && (
+        {mode === 'compound' && loading && (
           <div className="empty-state">
             <div className="loading-ring" />
             <p>Fetching structure…</p>
           </div>
         )}
-        {mol && (
+        {mode === 'compound' && mol && (
           <>
             {mol.is2d && (
               <div className="notice-banner">
@@ -161,6 +237,16 @@ export default function App() {
             )}
             <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} />
           </>
+        )}
+
+        {mode === 'reaction' && !reaction && (
+          <div className="empty-state">
+            <div className="empty-icon">⇌</div>
+            <p>Enter a reaction to see reactants transform into products</p>
+          </div>
+        )}
+        {mode === 'reaction' && reaction && (
+          <ReactionViewer reaction={reaction} />
         )}
       </div>
     </div>
