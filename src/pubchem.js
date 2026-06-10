@@ -4,10 +4,10 @@ export async function fetchCompound(query) {
   // Try to resolve CID from name or formula
   const nameUrl = `${BASE}/compound/name/${encodeURIComponent(query)}/cids/JSON`
   const res = await fetch(nameUrl)
-  if (!res.ok) throw new Error(`Compound "${query}" not found`)
+  if (!res.ok) throw new Error(`Couldn't find "${query}" — try a different name or formula`)
   const data = await res.json()
   const cid = data.IdentifierList?.CID?.[0]
-  if (!cid) throw new Error(`No results for "${query}"`)
+  if (!cid) throw new Error(`Couldn't find "${query}" — try a different name or formula`)
 
   // Fetch 3D SDF
   const sdfUrl = `${BASE}/compound/cid/${cid}/SDF?record_type=3d`
