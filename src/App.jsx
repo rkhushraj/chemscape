@@ -79,12 +79,12 @@ export default function App() {
   const runReaction = (input) => {
     const parsed = parseReaction(input)
     if (!parsed) {
-      setReactionError('Enter reactants and products as "A + B -> C + D", or just the reactants as "A + B"')
+      setReactionError('Enter a reaction, e.g. "A + B -> C + D", or just the reactants, e.g. "A + B"')
       setReaction(null)
       return
     }
     if (!parsed.products) {
-      setReactionError("Couldn't predict the products for these reactants — try writing the full equation with '->'")
+      setReactionError("Hmm, we don't recognize that reaction yet — try writing out the full equation with '->'")
       setReaction(null)
       return
     }

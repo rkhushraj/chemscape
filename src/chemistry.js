@@ -1,3 +1,5 @@
+import { ATOMIC_NUMBERS, ELEMENT_NAMES } from './elements.js'
+
 // ── Formula parsing ─────────────────────────────────────────────
 
 // Parses a chemical formula (e.g. "Ca(OH)2") into element counts, e.g. { Ca: 1, O: 2, H: 2 }
@@ -90,15 +92,70 @@ for (const [name, formula] of Object.entries(COMMON_NAMES)) {
   if (!(formula in FORMULA_NAMES)) FORMULA_NAMES[formula] = name
 }
 
+// Maps a bare element name (e.g. "hydrogen") to its natural elemental form,
+// using diatomic formulas for the elements that occur as diatomic gases.
+const DIATOMIC_ELEMENTS = new Set(['H', 'N', 'O', 'F', 'Cl', 'Br', 'I'])
+const ELEMENT_NAME_FORMULAS = {}
+for (const [symbol, name] of Object.entries(ELEMENT_NAMES)) {
+  const lower = name.toLowerCase()
+  if (!(lower in COMMON_NAMES)) {
+    ELEMENT_NAME_FORMULAS[lower] = DIATOMIC_ELEMENTS.has(symbol) ? `${symbol}2` : symbol
+  }
+}
+
+const ELEMENT_SYMBOLS_LOWER = new Set(Object.keys(ATOMIC_NUMBERS).map(s => s.toLowerCase()))
+
+// Re-cases an all-lowercase formula like "nacl" or "agno3" into proper
+// element-symbol case ("NaCl", "AgNO3") by finding the tokenization that
+// uses the fewest two-letter element symbols (the more "obvious" reading —
+// e.g. "agno3" -> Ag+N+O+3 rather than Ag+No+3). Returns null if the string
+// can't be split into valid element symbols, digits, and parentheses.
+function normalizeFormulaCase(lower) {
+  if (!/^[a-z0-9()[\]]+$/.test(lower)) return null
+
+  function solve(i) {
+    if (i === lower.length) return { tokens: [], twoLetterCount: 0 }
+    const ch = lower[i]
+    if (/[0-9()[\]]/.test(ch)) {
+      const rest = solve(i + 1)
+      return rest && { tokens: [ch, ...rest.tokens], twoLetterCount: rest.twoLetterCount }
+    }
+    let best = null
+    const two = lower.slice(i, i + 2)
+    if (/^[a-z]{2}$/.test(two) && ELEMENT_SYMBOLS_LOWER.has(two)) {
+      const rest = solve(i + 2)
+      if (rest) best = { tokens: [two[0].toUpperCase() + two[1], ...rest.tokens], twoLetterCount: rest.twoLetterCount + 1 }
+    }
+    if (ELEMENT_SYMBOLS_LOWER.has(ch)) {
+      const rest = solve(i + 1)
+      if (rest && (!best || rest.twoLetterCount < best.twoLetterCount)) {
+        best = { tokens: [ch.toUpperCase(), ...rest.tokens], twoLetterCount: rest.twoLetterCount }
+      }
+    }
+    return best
+  }
+
+  const result = solve(0)
+  return result ? result.tokens.join('') : null
+}
+
 // Resolves a user-typed term (formula or common name) to a chemical formula.
-// Returns null if the term can't be recognized.
+// Accepts mixed/lowercase input ("nacl", "Sodium Chloride") and bare element
+// names ("hydrogen" -> "H2"). Returns null if the term can't be recognized.
 export function resolveFormula(raw) {
   const trimmed = raw.trim()
   if (!trimmed) return null
-  if (/\s/.test(trimmed) || /[a-z]{3,}/.test(trimmed)) {
-    return COMMON_NAMES[trimmed.toLowerCase()] ?? null
+
+  if (/\s/.test(trimmed)) {
+    const lower = trimmed.toLowerCase()
+    return COMMON_NAMES[lower] ?? ELEMENT_NAME_FORMULAS[lower] ?? null
   }
-  return trimmed
+
+  // Already has an uppercase letter — assume it's cased correctly.
+  if (/[A-Z]/.test(trimmed)) return trimmed
+
+  const lower = trimmed.toLowerCase()
+  return COMMON_NAMES[lower] ?? ELEMENT_NAME_FORMULAS[lower] ?? normalizeFormulaCase(lower)
 }
 
 // ── Number helpers ──────────────────────────────────────────────
