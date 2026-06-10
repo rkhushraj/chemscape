@@ -2,8 +2,11 @@ export const EXAMPLE_REACTIONS = [
   'CH4 + 2 O2 -> CO2 + 2 H2O',
   '2 H2 + O2 -> 2 H2O',
   'N2 + 3 H2 -> 2 NH3',
-  'C2H5OH + 3 O2 -> 2 CO2 + 3 H2O',
   'Acetic acid + Sodium hydroxide -> Sodium acetate + Water',
+  'AgNO3 + NaCl -> AgCl + NaNO3',
+  'Zn + 2 HCl -> ZnCl2 + H2',
+  'Cu + ZnSO4 -> CuSO4 + Zn',
+  '2 KClO3 -> 2 KCl + 3 O2',
 ]
 
 export function parseReaction(input) {

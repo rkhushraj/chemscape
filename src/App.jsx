@@ -5,6 +5,7 @@ import AtomViewer from './AtomViewer.jsx'
 import { fetchCompound, fetchCompoundInfo } from './pubchem.js'
 import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
 import { findElement } from './elements.js'
+import FormulaText from './Formula.jsx'
 import './App.css'
 
 const VIEW_MODES = [
@@ -439,13 +440,3 @@ function InfoRow({ label, value }) {
   )
 }
 
-function FormulaText({ formula }) {
-  const parts = formula.split(/(\d+)/).filter(Boolean)
-  return (
-    <>
-      {parts.map((part, i) =>
-        /^\d+$/.test(part) ? <sub key={i}>{part}</sub> : <span key={i}>{part}</span>
-      )}
-    </>
-  )
-}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import MolViewer from './MolViewer.jsx'
+import FormulaText from './Formula.jsx'
 import { fetchCompound } from './pubchem.js'
 
 export default function MoleculeCard({ formula, coeff, spinning, animState }) {
@@ -29,7 +30,7 @@ export default function MoleculeCard({ formula, coeff, spinning, animState }) {
           />
         )}
       </div>
-      <div className="mol-card-name">{formula}</div>
+      <div className="mol-card-name"><FormulaText formula={formula} /></div>
     </div>
   )
 }
