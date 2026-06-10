@@ -124,12 +124,14 @@ function addChargeLabels(viewer, electronState) {
   state.chargeLabelSpecs.forEach(spec => {
     state.chargeLabels.push(viewer.addLabel(spec.text, {
       position: spec.position,
-      fontSize: 12,
+      fontSize: 24,
       fontColor: spec.color,
       backgroundOpacity: 0,
       borderThickness: 0,
       inFront: true,
       showBackground: false,
+      alignment: 'bottomLeft',
+      screenOffset: { x: 10, y: 10 },
     }))
   })
 }
@@ -159,7 +161,7 @@ function startElectronShells(viewer, electronState) {
     if (meta.charge) {
       chargeLabelSpecs.push({
         text: formatCharge(meta.charge),
-        position: { x: atom.x, y: atom.y + 0.35, z: atom.z },
+        position: { x: atom.x, y: atom.y, z: atom.z },
         color: meta.charge > 0 ? '#ff8a65' : '#64b5f6',
       })
     }
