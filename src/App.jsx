@@ -29,7 +29,8 @@ export default function App() {
   const [mol, setMol] = useState(null)   // { sdf, cid, is2d }
   const [info, setInfo] = useState(null)
   const [viewMode, setViewMode] = useState('ball-stick')
-  const [showLabels, setShowLabels] = useState(true)
+  const [showLegend, setShowLegend] = useState(true)
+  const [legend, setLegend] = useState([])
   const viewerRef = useRef(null)
 
   const [reactionInput, setReactionInput] = useState('')
@@ -195,11 +196,11 @@ export default function App() {
             </div>
 
             <label className="toggle-row">
-              <span className="toggle-label">Atom Labels</span>
+              <span className="toggle-label">Element Legend</span>
               <button
-                className={`toggle-btn ${showLabels ? 'on' : ''}`}
-                onClick={() => setShowLabels(v => !v)}
-                aria-pressed={showLabels}
+                className={`toggle-btn ${showLegend ? 'on' : ''}`}
+                onClick={() => setShowLegend(v => !v)}
+                aria-pressed={showLegend}
               >
                 <span className="toggle-knob" />
               </button>
@@ -249,7 +250,7 @@ export default function App() {
         {mode === 'compound' && loading && (
           <div className="empty-state">
             <div className="loading-ring" />
-            <p>Fetching structure…</p>
+            <p>Summoning molecule…</p>
           </div>
         )}
         {mode === 'compound' && mol && (
@@ -275,7 +276,17 @@ export default function App() {
                 <span><i className="charge charge-pos">+</i> / <i className="charge charge-neg">−</i> Ionic charge</span>
               </div>
             )}
-            <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} theme={theme} />
+            <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} theme={theme} onLegendChange={setLegend} />
+            {showLegend && viewMode !== 'electron-shells' && legend.length > 0 && (
+              <div className="element-legend">
+                {legend.map(({ elem, count, color }) => (
+                  <span key={elem}>
+                    <i className="dot" style={{ background: color }} />
+                    {elem}{count > 1 ? ` × ${count}` : ''}
+                  </span>
+                ))}
+              </div>
+            )}
           </>
         )}
 

@@ -39,23 +39,19 @@ function applyStyle(viewer, viewMode) {
   }
 }
 
-function addAtomLabels(viewer) {
-  viewer.removeAllLabels()
-  const model = viewer.getModel()
-  if (!model) return
+function buildElementLegend(model) {
+  if (!model) return []
+  const counts = new Map()
   model.atoms.forEach(atom => {
     if (!atom.elem) return
-    viewer.addLabel(atom.elem, {
-      position: { x: atom.x, y: atom.y, z: atom.z },
-      fontSize: 11,
-      fontColor: 'white',
-      backgroundOpacity: 0.55,
-      backgroundColor: 'black',
-      borderThickness: 0,
-      inFront: true,
-      showBackground: true,
-    })
+    counts.set(atom.elem, (counts.get(atom.elem) ?? 0) + 1)
   })
+  return [...counts.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([elem, count]) => {
+      const color = $3Dmol.elementColors.Jmol[elem] ?? $3Dmol.elementColors.defaultColor
+      return { elem, count, color: '#' + color.toString(16).padStart(6, '0') }
+    })
 }
 
 // Deterministic pseudo-random orthonormal basis (per atom) for shell orientation
@@ -287,7 +283,7 @@ function startElectronShells(viewer, electronState, theme) {
   state.timer = setInterval(tick, ELECTRON_TICK_MS)
 }
 
-const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spinning, theme }, ref) {
+const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, spinning, theme, onLegendChange }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
   const electronState = useRef({
@@ -329,7 +325,7 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
     viewer.setBackgroundColor((THEME_COLORS[theme] ?? THEME_COLORS.dark).bg)
     viewer.addModel(sdf, 'sdf')
     applyStyle(viewer, viewMode)
-    if (showLabels) addAtomLabels(viewer)
+    onLegendChange?.(buildElementLegend(viewer.getModel()))
     viewer.zoomTo()
     viewer.render()
     if (spinning) viewer.spin('y', 0.6)
@@ -342,7 +338,7 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
     clearElectronShells(viewer, electronState)
     viewer.removeAllSurfaces()
     applyStyle(viewer, viewMode)
-    if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
+    viewer.removeAllLabels()
     viewer.render()
     if (viewMode === 'electron-shells') startElectronShells(viewer, electronState, theme)
   }, [viewMode])
@@ -357,14 +353,6 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
     }
     viewer.render()
   }, [theme])
-
-  useEffect(() => {
-    const viewer = viewerRef.current
-    if (!viewer || !sdf) return
-    if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
-    if (viewMode === 'electron-shells') addChargeLabels(viewer, electronState)
-    viewer.render()
-  }, [showLabels])
 
   useEffect(() => {
     const viewer = viewerRef.current
