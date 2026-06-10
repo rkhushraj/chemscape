@@ -650,9 +650,9 @@ function checkOccurrence(classification, R, P) {
     const bi = activityIndex(b)
     if (ai && bi && ai.series === bi.series) {
       if (ai.idx < bi.idx) {
-        return { occurs: true, reason: `${a} is more reactive than ${b} (higher on the activity series), so it can displace ${b}.` }
+        return { occurs: true, reason: `${a} is more reactive than ${b} (higher on the reactivity series), so it can displace ${b}.` }
       }
-      return { occurs: false, reason: `${a} is less reactive than ${b} on the activity series, so it cannot displace ${b} — no reaction occurs.` }
+      return { occurs: false, reason: `${a} is less reactive than ${b} on the reactivity series, so it cannot displace ${b} — no reaction occurs.` }
     }
     return { occurs: true, reason: null }
   }
