@@ -107,8 +107,12 @@ export default function App() {
       <div className="sidebar">
         <div className="brand">
           <div className="element-tile brand-icon">
-            <span className="element-tile-num">8</span>
-            <span className="element-tile-sym">O</span>
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" />
+              <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" transform="rotate(60 24 24)" />
+              <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" transform="rotate(120 24 24)" />
+              <circle cx="24" cy="24" r="4" fill="currentColor" />
+            </svg>
           </div>
           <div className="brand-text">
             <span className="brand-name">ChemScape</span>

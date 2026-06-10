@@ -85,6 +85,11 @@
   height: 36px;
   font-size: 36px;
 }
+.brand-icon svg {
+  width: 64%;
+  height: 64%;
+  color: #fff;
+}
 .mode-switch {
   display: flex;
   background: var(--surface2);
