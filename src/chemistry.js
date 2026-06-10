@@ -622,7 +622,24 @@ function checkOccurrence(classification, R, P) {
 
 // ── Step descriptions ───────────────────────────────────────────
 
-function breakingDescription(classification, R) {
+// For a single-displacement reaction A + BC -> AC + B, identifies the
+// displacing element (A), the displaced element (B), and the compounds
+// it moves between.
+function singleDisplacementInfo(R, P) {
+  const rIsEl = R.map(r => isElementFormula(r.resolvedFormula))
+  const pIsEl = P.map(p => isElementFormula(p.resolvedFormula))
+  const freeReactantIdx = rIsEl.indexOf(true)
+  const freeProductIdx = pIsEl.indexOf(true)
+  return {
+    displacingEl: elementSymbol(R[freeReactantIdx].resolvedFormula),
+    displacedEl: elementSymbol(P[freeProductIdx].resolvedFormula),
+    freeProduct: P[freeProductIdx],
+    compoundReactant: R[1 - freeReactantIdx],
+    compoundProduct: P[1 - freeProductIdx],
+  }
+}
+
+function breakingDescription(classification, R, P) {
   switch (classification.type) {
     case 'combustion':
       return ['The C–H and C–C bonds in the fuel and the O=O double bonds in O2 all break apart.']
@@ -630,8 +647,10 @@ function breakingDescription(classification, R) {
       return ['The bonds within ', ...joinFormulas(R, ' and '), ' break, freeing the atoms to recombine.']
     case 'decomposition':
       return ['The bonds holding ', { f: R[0].resolvedFormula, state: R[0].state }, ' together break apart, separating it into its components.']
-    case 'single-displacement':
-      return ['The bond between the displaced element and the rest of the compound breaks.']
+    case 'single-displacement': {
+      const info = singleDisplacementInfo(R, P)
+      return ['The bond between the displaced element (', info.displacedEl, ') and the rest of ', { f: info.compoundReactant.resolvedFormula, state: info.compoundReactant.state }, ' breaks.']
+    }
     case 'double-displacement':
     case 'acid-base':
       return ['The ionic bonds in both ', ...joinFormulas(R, ' and '), ' break, releasing their ions into solution.']
@@ -640,7 +659,7 @@ function breakingDescription(classification, R) {
   }
 }
 
-function formingDescription(classification, P) {
+function formingDescription(classification, P, R) {
   switch (classification.type) {
     case 'combustion':
       return ['New C=O bonds form in CO2 and O–H bonds form in H2O.']
@@ -648,8 +667,10 @@ function formingDescription(classification, P) {
       return ['New bonds form between the atoms, creating ', { f: P[0].resolvedFormula, state: P[0].state }, '.']
     case 'decomposition':
       return ['The freed atoms settle into new, more stable arrangements: ', ...joinFormulas(P, ' and '), '.']
-    case 'single-displacement':
-      return ['The displacing element forms a new bond with the compound, while the displaced element is set free.']
+    case 'single-displacement': {
+      const info = singleDisplacementInfo(R, P)
+      return ['The displacing element (', info.displacingEl, ') forms a new bond, creating ', { f: info.compoundProduct.resolvedFormula, state: info.compoundProduct.state }, ', while the displaced element (', info.displacedEl, ') is set free as ', { f: info.freeProduct.resolvedFormula, state: info.freeProduct.state }, '.']
+    }
     case 'double-displacement':
       return ['The ions recombine with new partners, forming ', ...joinFormulas(P, ' and '), '.']
     case 'acid-base':
@@ -727,12 +748,12 @@ export function analyzeReaction(reactants, products) {
     steps.push({
       title: 'Bonds Break',
       phase: 'breaking',
-      description: breakingDescription(classification, R),
+      description: breakingDescription(classification, R, P),
     })
     steps.push({
       title: 'New Bonds Form',
       phase: 'forming',
-      description: formingDescription(classification, P),
+      description: formingDescription(classification, P, R),
     })
     const resultParts = ['The reaction completes, producing ', ...joinFormulas(P, ' and '), '.']
     if (occurrence.reason) resultParts.push(' ' + occurrence.reason)

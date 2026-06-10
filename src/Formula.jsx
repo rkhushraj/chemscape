@@ -32,3 +32,32 @@ export function RichText({ parts }) {
 export function f(formula, state) {
   return { f: formula, state }
 }
+
+// Renders a full reaction equation string (e.g. "2 H2(g) + O2(g) -> 2 H2O(l)"),
+// subscripting numbers that are part of a formula while leaving leading
+// coefficients (numbers preceded by whitespace or nothing) as normal text.
+// Each whitespace-delimited token is kept on one line so a formula and its
+// state label (e.g. "H2O(l)") never get split across a wrap.
+export function ReactionText({ text }) {
+  return (
+    <span>
+      {text.split(/(\s+)/).map((token, i) => {
+        if (/^\s+$/.test(token) || token === '') return token
+        const parts = token.split(/(\d+)/)
+        return (
+          <span key={i} style={{ whiteSpace: 'nowrap' }}>
+            {parts.map((part, j) => {
+              if (/^\d+$/.test(part)) {
+                const prevChar = (parts[j - 1] || '').slice(-1)
+                if (/[A-Za-z)]/.test(prevChar)) {
+                  return <sub key={j}>{part}</sub>
+                }
+              }
+              return part
+            })}
+          </span>
+        )
+      })}
+    </span>
+  )
+}

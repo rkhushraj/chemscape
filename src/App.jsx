@@ -5,7 +5,7 @@ import AtomViewer from './AtomViewer.jsx'
 import { fetchCompound, fetchCompoundInfo } from './pubchem.js'
 import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
 import { findElement } from './elements.js'
-import FormulaText from './Formula.jsx'
+import FormulaText, { ReactionText } from './Formula.jsx'
 import './App.css'
 
 const VIEW_MODES = [
@@ -267,7 +267,7 @@ export default function App() {
                     className="suggestion-chip"
                     onClick={() => { setReactionInput(r); runReaction(r) }}
                   >
-                    {r}
+                    <ReactionText text={r} />
                   </button>
                 ))}
               </div>
