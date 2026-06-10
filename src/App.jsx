@@ -84,7 +84,7 @@ export default function App() {
       return
     }
     if (!parsed.products) {
-      setReactionError("Hmm, we don't recognize that reaction yet — try writing out the full equation with '->'")
+      setReactionError("Hmm, we don't recognize that reaction! Either write out the full equation again or just put the reactants.")
       setReaction(null)
       return
     }
