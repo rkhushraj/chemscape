@@ -28,14 +28,14 @@ const TRANSFER_SPEED = 0.15
 function applyStyle(viewer, viewMode) {
   viewer.setStyle({}, {})
   if (viewMode === 'ball-stick') {
-    viewer.setStyle({}, { sphere: { scale: 0.3 }, stick: { radius: 0.15 } })
+    viewer.setStyle({}, { sphere: { scale: 0.3, colorscheme: 'Jmol' }, stick: { radius: 0.15, colorscheme: 'Jmol' } })
   } else if (viewMode === 'cpk') {
-    viewer.setStyle({}, { sphere: { scale: 1.0 } })
+    viewer.setStyle({}, { sphere: { scale: 1.0, colorscheme: 'Jmol' } })
   } else if (viewMode === 'surface') {
-    viewer.setStyle({}, { sphere: { scale: 0.25 }, stick: { radius: 0.12 } })
-    viewer.addSurface(SURFACE_TYPE, { opacity: 0.65, colorscheme: 'ssJmol' })
+    viewer.setStyle({}, { sphere: { scale: 0.25, colorscheme: 'Jmol' }, stick: { radius: 0.12, colorscheme: 'Jmol' } })
+    viewer.addSurface(SURFACE_TYPE, { opacity: 0.65, colorscheme: 'Jmol' })
   } else if (viewMode === 'electron-shells') {
-    viewer.setStyle({}, { sphere: { scale: 0.18 }, stick: { radius: 0.08 } })
+    viewer.setStyle({}, { sphere: { scale: 0.18, colorscheme: 'Jmol' }, stick: { radius: 0.08, colorscheme: 'Jmol' } })
   }
 }
 
