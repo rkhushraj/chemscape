@@ -77,27 +77,35 @@ export function analyzeBonding(model) {
     }
   }
 
-  let bondCount = 0
+  const bondedAtoms = new Set()
   for (let i = 0; i < n; i++) {
     const atom = atoms[i]
     if (!atom.bonds) continue
     atom.bonds.forEach((j, idx) => {
       if (j <= i) return
-      bondCount++
+      bondedAtoms.add(i)
+      bondedAtoms.add(j)
       const order = clampBondOrder(atom.bondOrder ? atom.bondOrder[idx] : 1)
       classifyEdge(i, j, order)
     })
   }
 
-  // Some 2D fallback structures (e.g. simple salts) carry no bond
-  // connectivity at all. Fall back to distance-based pairing so ionic
-  // compounds still render electron transfer.
-  if (bondCount === 0 && n >= 2) {
-    const DIST_CUTOFF = 3.5
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        const dist = Math.hypot(atoms[i].x - atoms[j].x, atoms[i].y - atoms[j].y, atoms[i].z - atoms[j].z)
-        if (dist < DIST_CUTOFF) classifyEdge(i, j, 1)
+  // Atoms with no real bond connectivity (e.g. a counter-ion like Ca2+ next
+  // to a carbonate group, or 2D fallback structures with no bonds at all)
+  // get distance-based pairing so ionic electron transfer still renders.
+  const DIST_CUTOFF = 3.5
+  const processedPairs = new Set()
+  for (let i = 0; i < n; i++) {
+    if (bondedAtoms.has(i)) continue
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue
+      const a = Math.min(i, j), b = Math.max(i, j)
+      const key = `${a}-${b}`
+      if (processedPairs.has(key)) continue
+      const dist = Math.hypot(atoms[a].x - atoms[b].x, atoms[a].y - atoms[b].y, atoms[a].z - atoms[b].z)
+      if (dist < DIST_CUTOFF) {
+        processedPairs.add(key)
+        classifyEdge(a, b, 1)
       }
     }
   }
@@ -137,9 +145,19 @@ export function analyzeBonding(model) {
   atomMeta.forEach(meta => {
     if (!meta.shells.length) return
     const last = meta.shells.length - 1
-    const valence = Math.max(0, meta.shells[last] + meta.electronChange - meta.covalentDepletion)
+    const original = meta.shells[last]
+    let change = meta.electronChange
+    if (change < 0) {
+      // can't give away more electrons than the atom actually has
+      change = Math.max(change, -original)
+    } else if (change > 0) {
+      // can't receive more electrons than the shell has room for
+      const capacity = (last === 0 ? 2 : 8) - original - meta.covalentDepletion
+      change = Math.min(change, Math.max(capacity, 0))
+    }
+    const valence = Math.max(0, original + change - meta.covalentDepletion)
     meta.shells[last] = valence
-    meta.charge = -meta.electronChange
+    meta.charge = -change
     if (meta.metallic) {
       meta.shells = meta.shells.slice(0, -1)
     }
