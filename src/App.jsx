@@ -115,7 +115,7 @@ export default function App() {
           <input
             className="search-input"
             type="text"
-            placeholder="Water, H2O, caffeine…"
+            placeholder="Search…"
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus
