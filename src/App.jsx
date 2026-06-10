@@ -81,7 +81,7 @@ export default function App() {
       <div className="sidebar">
         <div className="brand">
           <div className="element-tile brand-icon">
-            <span className="element-tile-num">08</span>
+            <span className="element-tile-num">8</span>
             <span className="element-tile-sym">O</span>
           </div>
           <span className="brand-name">ChemScape</span>
@@ -236,7 +236,7 @@ export default function App() {
         {mode === 'compound' && !mol && !loading && (
           <div className="empty-state">
             <div className="element-tile empty-icon">
-              <span className="element-tile-num">08</span>
+              <span className="element-tile-num">8</span>
               <span className="element-tile-sym">O</span>
             </div>
             <p>Search for any compound or element to explore its 3D structure</p>
