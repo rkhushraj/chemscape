@@ -57,7 +57,8 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
     const viewer = viewerRef.current
     if (!viewer) return
     const state = stateRef.current
-    if (state.timer) clearInterval(state.timer)
+    if (state.timer) cancelAnimationFrame(state.timer)
+    viewer.setBackgroundColor((THEME_COLORS[theme] ?? THEME_COLORS.dark).bg)
     viewer.removeAllShapes()
     state.shapes = []
     state.shellShapes = []
@@ -90,7 +91,13 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
     const precessionDirs = shells.map((_, i) => (i % 2 === 0 ? 1 : -1))
 
     let t = 0
-    const tick = () => {
+    let lastTime = null
+    const tick = (now) => {
+      if (lastTime == null) lastTime = now
+      const dt = (now - lastTime) / ELECTRON_TICK_MS
+      lastTime = now
+      t += dt * 0.12
+
       ;[...state.shellShapes, ...state.electronShapes].forEach(s => viewer.removeShape(s))
       state.shellShapes = []
       state.electronShapes = []
@@ -101,7 +108,7 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
         const v = rotateAroundAxis(shellBasis[i].v, precessionAxes[i], precessAngle)
         const radius = shellRadii[i]
 
-        const pts = circlePoints({ x: 0, y: 0, z: 0 }, radius, u, v, 64)
+        const pts = circlePoints({ x: 0, y: 0, z: 0 }, radius, u, v, 48)
         state.shellShapes.push(viewer.addCurve({ points: pts, radius: 0.012, color: colors.shell }))
 
         const speed = ELECTRON_SPEED / (1 + i * 0.4)
@@ -116,10 +123,9 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
         }
       })
       viewer.render()
-      t += 0.12
+      state.timer = requestAnimationFrame(tick)
     }
-    tick()
-    state.timer = setInterval(tick, ELECTRON_TICK_MS)
+    state.timer = requestAnimationFrame(tick)
 
     viewer.zoomTo()
     viewer.render()
@@ -127,7 +133,7 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
 
     return () => {
       if (state.timer) {
-        clearInterval(state.timer)
+        cancelAnimationFrame(state.timer)
         state.timer = null
       }
     }
