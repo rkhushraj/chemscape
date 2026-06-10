@@ -231,16 +231,18 @@ export default function App() {
         )}
         {mode === 'compound' && mol && (
           <>
-            {mol.is2d && (
-              <div className="notice-banner">
-                No 3D data available — showing 2D projection
-              </div>
-            )}
-            {viewMode === 'electron-shells' && (
-              <div className="notice-banner">
-                Simplified Bohr model — shell electron counts, not real orbitals
-              </div>
-            )}
+            <div className="notice-stack">
+              {mol.is2d && (
+                <div className="notice-banner">
+                  No 3D data available — showing 2D projection
+                </div>
+              )}
+              {viewMode === 'electron-shells' && (
+                <div className="notice-banner">
+                  Simplified Bohr model — shell electron counts, not real orbitals
+                </div>
+              )}
+            </div>
             {viewMode === 'electron-shells' && (
               <div className="electron-legend">
                 <span><i className="dot dot-atomic" /> Non-bonding electrons</span>
