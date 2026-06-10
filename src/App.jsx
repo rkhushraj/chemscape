@@ -305,7 +305,7 @@ export default function App() {
           <div className="info-panel">
             <p className="section-label">Properties</p>
             <div className="info-grid">
-              {info.MolecularFormula && <InfoRow label="Formula" value={info.MolecularFormula} />}
+              {info.MolecularFormula && <InfoRow label="Formula" value={<FormulaText formula={info.MolecularFormula} />} />}
               {info.MolecularWeight && <InfoRow label="MW" value={`${info.MolecularWeight} g/mol`} />}
               {info.IUPACName && <InfoRow label="IUPAC" value={info.IUPACName} />}
               {info.XLogP != null && <InfoRow label="LogP" value={info.XLogP} />}
@@ -436,5 +436,16 @@ function InfoRow({ label, value }) {
       <span className="info-label">{label}</span>
       <span className="info-value">{value}</span>
     </div>
+  )
+}
+
+function FormulaText({ formula }) {
+  const parts = formula.split(/(\d+)/).filter(Boolean)
+  return (
+    <>
+      {parts.map((part, i) =>
+        /^\d+$/.test(part) ? <sub key={i}>{part}</sub> : <span key={i}>{part}</span>
+      )}
+    </>
   )
 }
