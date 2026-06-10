@@ -443,11 +443,12 @@
 
 .mol-card {
   position: relative;
-  width: 180px;
-  height: 180px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(ellipse at 50% 40%, #1c1c30 0%, #0d0d18 100%);
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: var(--radius);
+  box-shadow: 0 0 24px rgba(var(--accent-rgb), 0.12), 0 4px 24px rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -462,10 +463,10 @@
 }
 .mol-card-name {
   text-align: center;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text2);
-  padding: 6px;
-  border-top: 1px solid var(--border);
+  padding: 8px;
+  border-top: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 .state-label {
   font-size: 0.85em;
