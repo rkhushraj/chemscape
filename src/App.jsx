@@ -241,6 +241,14 @@ export default function App() {
                 Simplified Bohr model — shell electron counts, not real orbitals
               </div>
             )}
+            {viewMode === 'electron-shells' && (
+              <div className="electron-legend">
+                <span><i className="dot dot-atomic" /> Non-bonding electrons</span>
+                <span><i className="dot dot-bond" /> Shared covalent pairs</span>
+                <span><i className="dot dot-sea" /> Delocalized (metallic) electrons</span>
+                <span><i className="charge charge-pos">+</i> / <i className="charge charge-neg">−</i> Ionic charge (electron transfer)</span>
+              </div>
+            )}
             <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} />
           </>
         )}

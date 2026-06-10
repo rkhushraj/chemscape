@@ -1,14 +1,20 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import * as $3Dmol from '3dmol/build/3Dmol.es6.js'
-import { ATOMIC_NUMBERS, getShellElectrons } from './elements.js'
+import { analyzeBonding } from './bonding.js'
 
 const SURFACE_TYPE = $3Dmol.SurfaceType?.VDW ?? 1
 
 const SHELL_BASE_RADIUS = 0.4
 const SHELL_RADIUS_STEP = 0.3
 const SHELL_COLOR = '#4a5a7a'
+const BOND_RING_COLOR = '#7a4a6a'
 const ELECTRON_RADIUS = 0.05
-const ELECTRON_COLOR = '#7df9ff'
+const ELECTRON_COLOR = '#7df9ff'      // non-bonding (atomic) electrons
+const BOND_ELECTRON_COLOR = '#ff6b9d' // shared covalent pairs
+const SEA_ELECTRON_COLOR = '#ffd54a'  // delocalized metallic electrons
+const SEA_COLOR = '#ffd54a'
+const BOND_PAIR_RADIUS = 0.18
+const BOND_PAIR_SPACING = 0.35
 const ELECTRON_TICK_MS = 90
 
 function applyStyle(viewer, viewMode) {
@@ -57,6 +63,15 @@ function atomBasis(index) {
   return { u, v }
 }
 
+// Orthonormal basis perpendicular to a bond axis
+function bondBasis(axis) {
+  const n = normalize(axis)
+  const ref = Math.abs(n.z) < 0.9 ? { x: 0, y: 0, z: 1 } : { x: 1, y: 0, z: 0 }
+  const u = normalize(cross(n, ref))
+  const v = cross(n, u)
+  return { n, u, v }
+}
+
 function cross(a, b) {
   return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }
 }
@@ -78,6 +93,13 @@ function circlePoints(center, radius, u, v, segments = 32) {
   return pts
 }
 
+function formatCharge(charge) {
+  if (!charge) return null
+  const sign = charge > 0 ? '+' : '−'
+  const mag = Math.abs(charge)
+  return mag === 1 ? sign : `${mag}${sign}`
+}
+
 function clearElectronShells(viewer, electronState) {
   const state = electronState.current
   if (state.timer) {
@@ -85,33 +107,106 @@ function clearElectronShells(viewer, electronState) {
     state.timer = null
   }
   ;[...state.staticShapes, ...state.electronShapes].forEach(s => viewer.removeShape(s))
+  state.chargeLabels.forEach(l => viewer.removeLabel(l))
   state.staticShapes = []
   state.electronShapes = []
+  state.chargeLabels = []
+  state.chargeLabelSpecs = []
+}
+
+function addChargeLabels(viewer, electronState) {
+  const state = electronState.current
+  state.chargeLabels = []
+  state.chargeLabelSpecs.forEach(spec => {
+    state.chargeLabels.push(viewer.addLabel(spec.text, {
+      position: spec.position,
+      fontSize: 12,
+      fontColor: spec.color,
+      backgroundOpacity: 0,
+      borderThickness: 0,
+      inFront: true,
+      showBackground: false,
+    }))
+  })
 }
 
 function startElectronShells(viewer, electronState) {
   const model = viewer.getModel()
   if (!model) return
   const state = electronState.current
+  const { atomMeta, covalentPairs, metallicCluster } = analyzeBonding(model)
+
   const atomInfo = []
+  const bondInfo = []
+  const chargeLabelSpecs = []
 
   model.atoms.forEach((atom, i) => {
-    const atomicNumber = ATOMIC_NUMBERS[atom.elem]
-    if (!atomicNumber) return
-    const shells = getShellElectrons(atomicNumber)
+    const meta = atomMeta[i]
+    const shells = meta.shells
     const { u, v } = atomBasis(i)
-    shells.forEach((_, shellIdx) => {
-      const radius = SHELL_BASE_RADIUS + shellIdx * SHELL_RADIUS_STEP
-      const pts = circlePoints(atom, radius, u, v)
-      state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.01, color: SHELL_COLOR }))
-    })
-    atomInfo.push({ atom, shells, u, v })
+    if (shells.length) {
+      shells.forEach((_, shellIdx) => {
+        const radius = SHELL_BASE_RADIUS + shellIdx * SHELL_RADIUS_STEP
+        const pts = circlePoints(atom, radius, u, v)
+        state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.01, color: SHELL_COLOR }))
+      })
+      atomInfo.push({ atom, shells, u, v })
+    }
+    if (meta.charge) {
+      chargeLabelSpecs.push({
+        text: formatCharge(meta.charge),
+        position: { x: atom.x, y: atom.y + 0.35, z: atom.z },
+        color: meta.charge > 0 ? '#ff8a65' : '#64b5f6',
+      })
+    }
   })
+
+  covalentPairs.forEach(({ a, b, order }) => {
+    const atomA = model.atoms[a]
+    const atomB = model.atoms[b]
+    const mid = { x: (atomA.x + atomB.x) / 2, y: (atomA.y + atomB.y) / 2, z: (atomA.z + atomB.z) / 2 }
+    const axis = { x: atomB.x - atomA.x, y: atomB.y - atomA.y, z: atomB.z - atomA.z }
+    const { n, u, v } = bondBasis(axis)
+    for (let k = 0; k < order; k++) {
+      const offset = (k - (order - 1) / 2) * BOND_PAIR_SPACING
+      const center = { x: mid.x + n.x * offset, y: mid.y + n.y * offset, z: mid.z + n.z * offset }
+      const pts = circlePoints(center, BOND_PAIR_RADIUS, u, v)
+      state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.008, color: BOND_RING_COLOR }))
+      bondInfo.push({ center, u, v })
+    }
+  })
+
+  if (metallicCluster) {
+    state.staticShapes.push(viewer.addSphere({
+      center: metallicCluster.center,
+      radius: metallicCluster.radius,
+      color: SEA_COLOR,
+      opacity: 0.12,
+    }))
+    state.seaElectrons = []
+    for (let i = 0; i < metallicCluster.electronCount; i++) {
+      const dir = normalize({ x: Math.random() - 0.5, y: Math.random() - 0.5, z: Math.random() - 0.5 })
+      const dist = metallicCluster.radius * Math.cbrt(Math.random())
+      state.seaElectrons.push({
+        x: metallicCluster.center.x + dir.x * dist,
+        y: metallicCluster.center.y + dir.y * dist,
+        z: metallicCluster.center.z + dir.z * dist,
+      })
+    }
+    state.metallicCluster = metallicCluster
+  } else {
+    state.seaElectrons = []
+    state.metallicCluster = null
+  }
+
+  state.chargeLabelSpecs = chargeLabelSpecs
+  addChargeLabels(viewer, electronState)
 
   let t = 0
   const tick = () => {
     state.electronShapes.forEach(s => viewer.removeShape(s))
     state.electronShapes = []
+
     atomInfo.forEach(({ atom, shells, u, v }) => {
       shells.forEach((count, shellIdx) => {
         const radius = SHELL_BASE_RADIUS + shellIdx * SHELL_RADIUS_STEP
@@ -127,6 +222,40 @@ function startElectronShells(viewer, electronState) {
         }
       })
     })
+
+    bondInfo.forEach(({ center, u, v }) => {
+      const speed = 1.4
+      for (let e = 0; e < 2; e++) {
+        const angle = (e / 2) * Math.PI * 2 + t * speed
+        const pos = {
+          x: center.x + BOND_PAIR_RADIUS * (Math.cos(angle) * u.x + Math.sin(angle) * v.x),
+          y: center.y + BOND_PAIR_RADIUS * (Math.cos(angle) * u.y + Math.sin(angle) * v.y),
+          z: center.z + BOND_PAIR_RADIUS * (Math.cos(angle) * u.z + Math.sin(angle) * v.z),
+        }
+        state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: BOND_ELECTRON_COLOR }))
+      }
+    })
+
+    if (state.metallicCluster) {
+      const { center, radius } = state.metallicCluster
+      state.seaElectrons = state.seaElectrons.map(p => {
+        let nx = p.x + (Math.random() - 0.5) * 0.12
+        let ny = p.y + (Math.random() - 0.5) * 0.12
+        let nz = p.z + (Math.random() - 0.5) * 0.12
+        const d = Math.hypot(nx - center.x, ny - center.y, nz - center.z)
+        if (d > radius) {
+          const scale = radius / d
+          nx = center.x + (nx - center.x) * scale
+          ny = center.y + (ny - center.y) * scale
+          nz = center.z + (nz - center.z) * scale
+        }
+        return { x: nx, y: ny, z: nz }
+      })
+      state.seaElectrons.forEach(pos => {
+        state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: SEA_ELECTRON_COLOR }))
+      })
+    }
+
     viewer.render()
     t += 0.12
   }
@@ -137,7 +266,15 @@ function startElectronShells(viewer, electronState) {
 const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spinning }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
-  const electronState = useRef({ timer: null, staticShapes: [], electronShapes: [] })
+  const electronState = useRef({
+    timer: null,
+    staticShapes: [],
+    electronShapes: [],
+    chargeLabels: [],
+    chargeLabelSpecs: [],
+    seaElectrons: [],
+    metallicCluster: null,
+  })
 
   useImperativeHandle(ref, () => ({
     resetView: () => {
@@ -189,6 +326,7 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
     const viewer = viewerRef.current
     if (!viewer || !sdf) return
     if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
+    if (viewMode === 'electron-shells') addChargeLabels(viewer, electronState)
     viewer.render()
   }, [showLabels])
 
