@@ -425,7 +425,8 @@ export default function App() {
         {mode === 'reaction' && !reaction && (
           <div className="empty-state">
             <div className="element-tile empty-icon">⇌</div>
-            <p>Enter just the reactants and we'll predict the products, or write out the full equation!</p>
+            <p>Enter the reactants and we'll predict the products, or write out the full equation!</p>
+            <p className="coming-soon">No states of matter needed</p>
           </div>
         )}
         {mode === 'reaction' && reaction && (
