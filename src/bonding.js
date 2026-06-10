@@ -93,12 +93,36 @@ export function analyzeBonding(model) {
   // Atoms with no real bond connectivity (e.g. a counter-ion like Ca2+ next
   // to a carbonate group, or 2D fallback structures with no bonds at all)
   // get distance-based pairing so ionic electron transfer still renders.
+  // If the structure also contains a nonmetal that some metal could form an
+  // ionic bond with, treat any nearby metal-metal pairs as a 2D layout
+  // artifact rather than metallic bonding (e.g. the two Al atoms drawn next
+  // to each other in Al2O3 aren't a metallic bond).
+  const hasIonicNonmetalPartner = atoms.some(b => {
+    if (METALS.has(b.elem)) return false
+    const enB = ELECTRONEGATIVITY[b.elem]
+    if (enB == null) return false
+    return atoms.some(a => METALS.has(a.elem) && ELECTRONEGATIVITY[a.elem] != null && Math.abs(ELECTRONEGATIVITY[a.elem] - enB) >= IONIC_THRESHOLD)
+  })
+
   const DIST_CUTOFF = 3.5
   const processedPairs = new Set()
   for (let i = 0; i < n; i++) {
     if (bondedAtoms.has(i)) continue
     for (let j = 0; j < n; j++) {
       if (j === i) continue
+      const elemA = atoms[i].elem
+      const elemB = atoms[j].elem
+      const bothMetal = METALS.has(elemA) && METALS.has(elemB)
+      if (hasIonicNonmetalPartner && bothMetal) continue
+      const enA = ELECTRONEGATIVITY[elemA]
+      const enB = ELECTRONEGATIVITY[elemB]
+      const diff = (enA != null && enB != null) ? Math.abs(enA - enB) : 0
+      // Only pair atoms that aren't actually bonded if the relationship is
+      // ionic or metallic; nearby nonmetal-nonmetal atoms in a 2D layout
+      // (e.g. O...O distances in Al2O3) aren't a real bond.
+      const isIonic = enA != null && enB != null && diff >= IONIC_THRESHOLD
+      const isMetallic = bothMetal && diff < METALLIC_EN_DIFF
+      if (!isIonic && !isMetallic) continue
       const a = Math.min(i, j), b = Math.max(i, j)
       const key = `${a}-${b}`
       if (processedPairs.has(key)) continue

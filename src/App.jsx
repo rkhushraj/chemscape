@@ -8,7 +8,6 @@ import './App.css'
 const VIEW_MODES = [
   { id: 'ball-stick',     label: 'Ball & Stick' },
   { id: 'cpk',            label: 'Space-Fill' },
-  { id: 'wireframe',      label: 'Wireframe' },
   { id: 'surface',        label: 'Surface' },
   { id: 'electron-shells', label: 'Electron Shells' },
 ]

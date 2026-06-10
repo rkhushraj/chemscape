@@ -20,7 +20,7 @@ const ELECTRON_TICK_MS = 120
 const TRANSFER_COLOR = '#b388ff'      // electron mid-transfer in an ionic bond
 const TRANSFER_RADIUS = 0.07
 const TRANSFER_ARC_HEIGHT = 0.6
-const TRANSFER_SPEED = 0.05
+const TRANSFER_SPEED = 0.15
 
 function applyStyle(viewer, viewMode) {
   viewer.setStyle({}, {})
@@ -28,8 +28,6 @@ function applyStyle(viewer, viewMode) {
     viewer.setStyle({}, { sphere: { scale: 0.3 }, stick: { radius: 0.15 } })
   } else if (viewMode === 'cpk') {
     viewer.setStyle({}, { sphere: { scale: 1.0 } })
-  } else if (viewMode === 'wireframe') {
-    viewer.setStyle({}, { line: { linewidth: 2 } })
   } else if (viewMode === 'surface') {
     viewer.setStyle({}, { sphere: { scale: 0.25 }, stick: { radius: 0.12 } })
     viewer.addSurface(SURFACE_TYPE, { opacity: 0.65, colorscheme: 'ssJmol' })
