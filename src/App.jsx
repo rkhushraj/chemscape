@@ -6,10 +6,11 @@ import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
 import './App.css'
 
 const VIEW_MODES = [
-  { id: 'ball-stick', label: 'Ball & Stick' },
-  { id: 'cpk',        label: 'Space-Fill' },
-  { id: 'wireframe',  label: 'Wireframe' },
-  { id: 'surface',    label: 'Surface' },
+  { id: 'ball-stick',     label: 'Ball & Stick' },
+  { id: 'cpk',            label: 'Space-Fill' },
+  { id: 'wireframe',      label: 'Wireframe' },
+  { id: 'surface',        label: 'Surface' },
+  { id: 'electron-shells', label: 'Electron Shells' },
 ]
 
 const SUGGESTIONS = ['Water', 'Caffeine', 'Aspirin', 'Glucose', 'Ethanol', 'ATP', 'Penicillin', 'Dopamine']
@@ -233,6 +234,11 @@ export default function App() {
             {mol.is2d && (
               <div className="notice-banner">
                 No 3D data available — showing 2D projection
+              </div>
+            )}
+            {viewMode === 'electron-shells' && (
+              <div className="notice-banner">
+                Simplified Bohr model — shell electron counts, not real orbitals
               </div>
             )}
             <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} />
