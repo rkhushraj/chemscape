@@ -239,7 +239,7 @@ export default function App() {
               <span className="element-tile-num">8</span>
               <span className="element-tile-sym">O</span>
             </div>
-            <p>Search for any compound or element to explore its 3D structure</p>
+            <p>Search for any compound or element to explore its 2D structure</p>
           </div>
         )}
         {mode === 'compound' && loading && (
