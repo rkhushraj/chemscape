@@ -29,5 +29,40 @@ export async function fetchCompoundInfo(cid) {
   const res = await fetch(url)
   if (!res.ok) return null
   const data = await res.json()
-  return data.PropertyTable?.Properties?.[0] ?? null
+  const props = data.PropertyTable?.Properties?.[0] ?? null
+  if (props?.IUPACName) {
+    props.IUPACName = simplifyFixedValenceSaltName(props.IUPACName)
+  }
+  return props
+}
+
+// PubChem's auto-generated IUPAC names apply multiplying prefixes (di-, tri-, ...)
+// even for elements with a single fixed oxidation state, e.g. "calcium dichloride".
+// The IUPAC-preferred form for these omits the redundant prefixes: "calcium chloride".
+const MULTIPLYING_PREFIXES = ['hexa', 'penta', 'tetra', 'tri', 'di']
+
+const FIXED_VALENCE_METALS = new Set([
+  'lithium', 'sodium', 'potassium', 'rubidium', 'caesium', 'cesium', 'francium',
+  'beryllium', 'magnesium', 'calcium', 'strontium', 'barium', 'radium',
+  'aluminium', 'aluminum', 'zinc', 'cadmium', 'silver',
+])
+
+function stripMultiplyingPrefix(word) {
+  for (const prefix of MULTIPLYING_PREFIXES) {
+    if (word.startsWith(prefix) && word.length > prefix.length + 2) {
+      return word.slice(prefix.length)
+    }
+  }
+  return word
+}
+
+function simplifyFixedValenceSaltName(name) {
+  const words = name.trim().split(/\s+/)
+  if (words.length !== 2) return name
+  const [cationRaw, anionRaw] = words
+  const cation = stripMultiplyingPrefix(cationRaw)
+  if (!FIXED_VALENCE_METALS.has(cation.toLowerCase())) return name
+  const anion = stripMultiplyingPrefix(anionRaw)
+  if (!anion.toLowerCase().endsWith('ide')) return name
+  return `${cation} ${anion}`
 }
