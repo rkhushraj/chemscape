@@ -90,6 +90,11 @@
   height: 64%;
   color: #fff;
 }
+.empty-icon.element-tile svg {
+  width: 60%;
+  height: 60%;
+  color: #fff;
+}
 .mode-switch {
   display: flex;
   background: var(--surface2);

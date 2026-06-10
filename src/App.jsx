@@ -329,8 +329,15 @@ export default function App() {
         {mode === 'compound' && !mol && !loading && (
           <div className="empty-state">
             <div className="element-tile empty-icon">
-              <span className="element-tile-num">8</span>
-              <span className="element-tile-sym">O</span>
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="24" y1="24" x2="38" y2="14" stroke="currentColor" strokeWidth="2.5" />
+                <line x1="24" y1="24" x2="12" y2="34" stroke="currentColor" strokeWidth="2.5" />
+                <line x1="24" y1="24" x2="34" y2="38" stroke="currentColor" strokeWidth="2.5" />
+                <circle cx="24" cy="24" r="8" fill="currentColor" />
+                <circle cx="38" cy="14" r="5" fill="currentColor" opacity="0.7" />
+                <circle cx="12" cy="34" r="5" fill="currentColor" opacity="0.7" />
+                <circle cx="34" cy="38" r="5" fill="currentColor" opacity="0.7" />
+              </svg>
             </div>
             <p>Search for any compound or element to explore its 2D structure</p>
             <p className="coming-soon">3D structures coming soon!</p>
@@ -382,7 +389,7 @@ export default function App() {
         {mode === 'atom' && !atomResult && (
           <div className="empty-state">
             <div className="empty-icon">⚛</div>
-            <p>Search for an element to see its atomic structure</p>
+            <p>Search for an element to see its 3D atomic structure</p>
           </div>
         )}
         {mode === 'atom' && atomResult && (
