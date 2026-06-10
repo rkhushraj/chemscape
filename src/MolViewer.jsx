@@ -7,15 +7,16 @@ const SURFACE_TYPE = $3Dmol.SurfaceType?.VDW ?? 1
 const SHELL_BASE_RADIUS = 0.4
 const SHELL_RADIUS_STEP = 0.3
 const SHELL_COLOR = '#4a5a7a'
-const BOND_RING_COLOR = '#7a4a6a'
-const ELECTRON_RADIUS = 0.05
-const ELECTRON_COLOR = '#7df9ff'      // non-bonding (atomic) electrons
+const ELECTRON_RADIUS = 0.045
+const ELECTRON_COLOR = '#7df9ff'      // non-bonding valence electrons
+const ELECTRON_SPEED = 0.5
 const BOND_ELECTRON_COLOR = '#ff6b9d' // shared covalent pairs
 const SEA_ELECTRON_COLOR = '#ffd54a'  // delocalized metallic electrons
 const SEA_COLOR = '#ffd54a'
-const BOND_PAIR_RADIUS = 0.18
+const BOND_PAIR_RADIUS = 0.16
 const BOND_PAIR_SPACING = 0.35
-const ELECTRON_TICK_MS = 90
+const BOND_PAIR_SPEED = 0.7
+const ELECTRON_TICK_MS = 120
 const TRANSFER_COLOR = '#b388ff'      // electron mid-transfer in an ionic bond
 const TRANSFER_RADIUS = 0.07
 const TRANSFER_ARC_HEIGHT = 0.6
@@ -151,12 +152,15 @@ function startElectronShells(viewer, electronState) {
     const shells = meta.shells
     const { u, v } = atomBasis(i)
     if (shells.length) {
-      shells.forEach((_, shellIdx) => {
-        const radius = SHELL_BASE_RADIUS + shellIdx * SHELL_RADIUS_STEP
+      // Only the outermost (valence) shell is shown — inner/core electrons
+      // aren't involved in bonding and just add visual noise.
+      const valenceCount = shells[shells.length - 1]
+      const radius = SHELL_BASE_RADIUS + (shells.length - 1) * SHELL_RADIUS_STEP
+      if (valenceCount > 0) {
         const pts = circlePoints(atom, radius, u, v)
         state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.01, color: SHELL_COLOR }))
-      })
-      atomInfo.push({ atom, shells, u, v })
+        atomInfo.push({ atom, count: valenceCount, radius, u, v })
+      }
     }
     if (meta.charge) {
       chargeLabelSpecs.push({
@@ -176,8 +180,6 @@ function startElectronShells(viewer, electronState) {
     for (let k = 0; k < order; k++) {
       const offset = (k - (order - 1) / 2) * BOND_PAIR_SPACING
       const center = { x: mid.x + n.x * offset, y: mid.y + n.y * offset, z: mid.z + n.z * offset }
-      const pts = circlePoints(center, BOND_PAIR_RADIUS, u, v)
-      state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.008, color: BOND_RING_COLOR }))
       bondInfo.push({ center, u, v })
     }
   })
@@ -213,24 +215,20 @@ function startElectronShells(viewer, electronState) {
     state.electronShapes.forEach(s => viewer.removeShape(s))
     state.electronShapes = []
 
-    atomInfo.forEach(({ atom, shells, u, v }) => {
-      shells.forEach((count, shellIdx) => {
-        const radius = SHELL_BASE_RADIUS + shellIdx * SHELL_RADIUS_STEP
-        const speed = 0.9 / (shellIdx + 1)
-        for (let e = 0; e < count; e++) {
-          const angle = (e / count) * Math.PI * 2 + t * speed
-          const pos = {
-            x: atom.x + radius * (Math.cos(angle) * u.x + Math.sin(angle) * v.x),
-            y: atom.y + radius * (Math.cos(angle) * u.y + Math.sin(angle) * v.y),
-            z: atom.z + radius * (Math.cos(angle) * u.z + Math.sin(angle) * v.z),
-          }
-          state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: ELECTRON_COLOR }))
+    atomInfo.forEach(({ atom, count, radius, u, v }) => {
+      for (let e = 0; e < count; e++) {
+        const angle = (e / count) * Math.PI * 2 + t * ELECTRON_SPEED
+        const pos = {
+          x: atom.x + radius * (Math.cos(angle) * u.x + Math.sin(angle) * v.x),
+          y: atom.y + radius * (Math.cos(angle) * u.y + Math.sin(angle) * v.y),
+          z: atom.z + radius * (Math.cos(angle) * u.z + Math.sin(angle) * v.z),
         }
-      })
+        state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: ELECTRON_COLOR }))
+      }
     })
 
     bondInfo.forEach(({ center, u, v }) => {
-      const speed = 1.4
+      const speed = BOND_PAIR_SPEED
       for (let e = 0; e < 2; e++) {
         const angle = (e / 2) * Math.PI * 2 + t * speed
         const pos = {

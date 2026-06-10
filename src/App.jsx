@@ -239,13 +239,13 @@ export default function App() {
               )}
               {viewMode === 'electron-shells' && (
                 <div className="notice-banner">
-                  Simplified Bohr model — shell electron counts, not real orbitals
+                  Showing valence (outermost) electrons only — like a Lewis structure
                 </div>
               )}
             </div>
             {viewMode === 'electron-shells' && (
               <div className="electron-legend">
-                <span><i className="dot dot-atomic" /> Non-bonding electrons</span>
+                <span><i className="dot dot-atomic" /> Lone pair / valence electrons</span>
                 <span><i className="dot dot-bond" /> Shared covalent pairs</span>
                 <span><i className="dot dot-sea" /> Delocalized (metallic) electrons</span>
                 <span><i className="dot dot-transfer" /> Electron transferring (ionic)</span>
