@@ -48,6 +48,7 @@ export function analyzeBonding(model) {
 
   const covalentPairs = []
   const metallicEdges = []
+  const ionicTransfers = []
 
   function classifyEdge(i, j, order) {
     const elemA = atomMeta[i].elem
@@ -63,9 +64,11 @@ export function analyzeBonding(model) {
       if (enA > enB) {
         atomMeta[i].electronChange += order
         atomMeta[j].electronChange -= order
+        ionicTransfers.push({ from: j, to: i, count: order })
       } else {
         atomMeta[j].electronChange += order
         atomMeta[i].electronChange -= order
+        ionicTransfers.push({ from: i, to: j, count: order })
       }
     } else {
       covalentPairs.push({ a: i, b: j, order })
@@ -142,5 +145,5 @@ export function analyzeBonding(model) {
     }
   })
 
-  return { atomMeta, covalentPairs, metallicCluster }
+  return { atomMeta, covalentPairs, metallicCluster, ionicTransfers }
 }

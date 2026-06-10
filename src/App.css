@@ -481,6 +481,7 @@
 .dot-atomic { background: #7df9ff; }
 .dot-bond { background: #ff6b9d; }
 .dot-sea { background: #ffd54a; }
+.dot-transfer { background: #b388ff; }
 
 .electron-legend .charge {
   font-style: normal;

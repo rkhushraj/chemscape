@@ -16,6 +16,10 @@ const SEA_COLOR = '#ffd54a'
 const BOND_PAIR_RADIUS = 0.18
 const BOND_PAIR_SPACING = 0.35
 const ELECTRON_TICK_MS = 90
+const TRANSFER_COLOR = '#b388ff'      // electron mid-transfer in an ionic bond
+const TRANSFER_RADIUS = 0.07
+const TRANSFER_ARC_HEIGHT = 0.6
+const TRANSFER_SPEED = 0.05
 
 function applyStyle(viewer, viewMode) {
   viewer.setStyle({}, {})
@@ -134,7 +138,7 @@ function startElectronShells(viewer, electronState) {
   const model = viewer.getModel()
   if (!model) return
   const state = electronState.current
-  const { atomMeta, covalentPairs, metallicCluster } = analyzeBonding(model)
+  const { atomMeta, covalentPairs, metallicCluster, ionicTransfers } = analyzeBonding(model)
 
   const atomInfo = []
   const bondInfo = []
@@ -233,6 +237,24 @@ function startElectronShells(viewer, electronState) {
           z: center.z + BOND_PAIR_RADIUS * (Math.cos(angle) * u.z + Math.sin(angle) * v.z),
         }
         state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: BOND_ELECTRON_COLOR }))
+      }
+    })
+
+    ionicTransfers.forEach(({ from, to, count }) => {
+      const a = model.atoms[from]
+      const b = model.atoms[to]
+      const axis = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z }
+      const { u } = bondBasis(axis)
+      for (let k = 0; k < count; k++) {
+        const phase = k / count
+        const progress = ((t * TRANSFER_SPEED) + phase) % 1
+        const lift = Math.sin(progress * Math.PI) * TRANSFER_ARC_HEIGHT
+        const pos = {
+          x: a.x + (b.x - a.x) * progress + u.x * lift,
+          y: a.y + (b.y - a.y) * progress + u.y * lift,
+          z: a.z + (b.z - a.z) * progress + u.z * lift,
+        }
+        state.electronShapes.push(viewer.addSphere({ center: pos, radius: TRANSFER_RADIUS, color: TRANSFER_COLOR }))
       }
     })
 

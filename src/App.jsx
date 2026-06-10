@@ -246,7 +246,8 @@ export default function App() {
                 <span><i className="dot dot-atomic" /> Non-bonding electrons</span>
                 <span><i className="dot dot-bond" /> Shared covalent pairs</span>
                 <span><i className="dot dot-sea" /> Delocalized (metallic) electrons</span>
-                <span><i className="charge charge-pos">+</i> / <i className="charge charge-neg">−</i> Ionic charge (electron transfer)</span>
+                <span><i className="dot dot-transfer" /> Electron transferring (ionic)</span>
+                <span><i className="charge charge-pos">+</i> / <i className="charge charge-neg">−</i> Ionic charge</span>
               </div>
             )}
             <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} />
