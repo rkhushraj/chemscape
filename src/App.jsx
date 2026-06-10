@@ -80,7 +80,10 @@ export default function App() {
     <div className="app">
       <div className="sidebar">
         <div className="brand">
-          <span className="brand-icon">⬡</span>
+          <div className="element-tile brand-icon">
+            <span className="element-tile-num">06</span>
+            <span className="element-tile-sym">Cs</span>
+          </div>
           <span className="brand-name">ChemScape</span>
           <button
             className="theme-toggle"
@@ -232,7 +235,10 @@ export default function App() {
       <div className="viewer-area">
         {mode === 'compound' && !mol && !loading && (
           <div className="empty-state">
-            <div className="empty-icon">⬡</div>
+            <div className="element-tile empty-icon">
+              <span className="element-tile-num">06</span>
+              <span className="element-tile-sym">Cs</span>
+            </div>
             <p>Search for any compound or element to explore its 3D structure</p>
           </div>
         )}
