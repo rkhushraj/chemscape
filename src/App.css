@@ -356,6 +356,13 @@
   font-size: 64px;
   opacity: 0.15;
 }
+.coming-soon {
+  margin-top: -8px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--accent2);
+  opacity: 0.8;
+}
 .empty-icon.element-tile {
   width: 92px;
   height: 92px;

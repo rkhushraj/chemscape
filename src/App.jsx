@@ -240,6 +240,7 @@ export default function App() {
               <span className="element-tile-sym">O</span>
             </div>
             <p>Search for any compound or element to explore its 2D structure</p>
+            <p className="coming-soon">3D structures coming soon!</p>
           </div>
         )}
         {mode === 'compound' && loading && (
