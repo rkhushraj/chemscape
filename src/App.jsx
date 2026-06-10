@@ -84,7 +84,10 @@ export default function App() {
             <span className="element-tile-num">8</span>
             <span className="element-tile-sym">O</span>
           </div>
-          <span className="brand-name">ChemScape</span>
+          <div className="brand-text">
+            <span className="brand-name">ChemScape</span>
+            <span className="brand-credit">by Rohan Khushraj</span>
+          </div>
           <button
             className="theme-toggle"
             onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
