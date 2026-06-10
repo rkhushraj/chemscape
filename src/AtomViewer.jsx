@@ -1,6 +1,6 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import * as $3Dmol from '3dmol/build/3Dmol.es6.js'
-import { atomBasis, circlePoints, rotateAroundAxis, normalize, cross } from './geometry.js'
+import { atomBasis, circlePoints, rotateAroundAxis } from './geometry.js'
 
 const THEME_COLORS = {
   dark: { bg: 0x0a0a0f, shell: '#4a5a7a', electron: '#7df9ff' },
@@ -13,7 +13,7 @@ const ELECTRON_RADIUS = 0.06
 const SHELL_RADIUS_STEP = 0.55
 const ELECTRON_SPEED = 0.5
 const ELECTRON_TICK_MS = 120
-const SHELL_PRECESSION_SPEED = 0.06
+const SHELL_PRECESSION_SPEED = 0.25
 
 // Deterministic pseudo-random point inside a unit sphere
 function spherePoint(seed) {
@@ -84,8 +84,9 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
 
     const shellBasis = shells.map((_, i) => atomBasis(i * 7 + 3))
     const shellRadii = shells.map((_, i) => nucleonRadius + NUCLEON_RADIUS + 0.6 + i * SHELL_RADIUS_STEP)
-    // Each shell precesses (tumbles) around its own axis, distinct per shell
-    const precessionAxes = shells.map((_, i) => normalize(cross(shellBasis[i].u, shellBasis[i].v)))
+    // Each shell tumbles around an axis distinct from its own orbital normal,
+    // so the ring's plane visibly tilts and sweeps around the nucleus over time.
+    const precessionAxes = shells.map((_, i) => atomBasis(i * 11 + 17).u)
     const precessionDirs = shells.map((_, i) => (i % 2 === 0 ? 1 : -1))
 
     let t = 0

@@ -13,7 +13,13 @@
       "Bash(curl -s \"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/9989226/SDF\")",
       "Bash(npx netlify *)",
       "Bash(git commit *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(mkdir -p /tmp/frames)",
+      "Bash(ffmpeg -y -i \"/Users/rkhushraj/Library/Group Containers/group.com.apple.screencapture/ScreenRecordings/19DD34C6-DE53-46BC-98A5-1102741E4F4E.mov\" -vf \"fps=1\" /tmp/frames/frame_%03d.png)",
+      "Bash(brew list *)",
+      "Bash(qlmanage -t -s 1200 -o /tmp/frames \"/Users/rkhushraj/Library/Group Containers/group.com.apple.screencapture/ScreenRecordings/19DD34C6-DE53-46BC-98A5-1102741E4F4E.mov\")",
+      "Read(//private/tmp/frames/**)",
+      "Bash(kill 52701)"
     ]
   }
 }
