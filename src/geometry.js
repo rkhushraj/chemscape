@@ -18,6 +18,23 @@ export function atomBasis(index) {
   return { u, v }
 }
 
+export function dot(a, b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z
+}
+
+// Rotates vector v by angle (radians) around a unit axis (Rodrigues' formula)
+export function rotateAroundAxis(v, axis, angle) {
+  const cos = Math.cos(angle)
+  const sin = Math.sin(angle)
+  const k = cross(axis, v)
+  const d = dot(axis, v) * (1 - cos)
+  return {
+    x: v.x * cos + k.x * sin + axis.x * d,
+    y: v.y * cos + k.y * sin + axis.y * d,
+    z: v.z * cos + k.z * sin + axis.z * d,
+  }
+}
+
 export function circlePoints(center, radius, u, v, segments = 32) {
   const pts = []
   for (let i = 0; i <= segments; i++) {

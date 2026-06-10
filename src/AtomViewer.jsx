@@ -1,6 +1,6 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import * as $3Dmol from '3dmol/build/3Dmol.es6.js'
-import { atomBasis, circlePoints } from './geometry.js'
+import { atomBasis, circlePoints, rotateAroundAxis, normalize, cross } from './geometry.js'
 
 const THEME_COLORS = {
   dark: { bg: 0x0a0a0f, shell: '#4a5a7a', electron: '#7df9ff' },
@@ -13,6 +13,7 @@ const ELECTRON_RADIUS = 0.06
 const SHELL_RADIUS_STEP = 0.55
 const ELECTRON_SPEED = 0.5
 const ELECTRON_TICK_MS = 120
+const SHELL_PRECESSION_SPEED = 0.06
 
 // Deterministic pseudo-random point inside a unit sphere
 function spherePoint(seed) {
@@ -29,7 +30,7 @@ function spherePoint(seed) {
 const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, theme, spinning }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
-  const stateRef = useRef({ timer: null, shapes: [], electronShapes: [] })
+  const stateRef = useRef({ timer: null, shapes: [], shellShapes: [], electronShapes: [] })
 
   useImperativeHandle(ref, () => ({
     resetView: () => {
@@ -59,6 +60,7 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
     if (state.timer) clearInterval(state.timer)
     viewer.removeAllShapes()
     state.shapes = []
+    state.shellShapes = []
     state.electronShapes = []
 
     const colors = THEME_COLORS[theme] ?? THEME_COLORS.dark
@@ -82,21 +84,25 @@ const AtomViewer = forwardRef(function AtomViewer({ protons, neutrons, shells, t
 
     const shellBasis = shells.map((_, i) => atomBasis(i * 7 + 3))
     const shellRadii = shells.map((_, i) => nucleonRadius + NUCLEON_RADIUS + 0.6 + i * SHELL_RADIUS_STEP)
-    shells.forEach((count, i) => {
-      if (count <= 0) return
-      const { u, v } = shellBasis[i]
-      const pts = circlePoints({ x: 0, y: 0, z: 0 }, shellRadii[i], u, v, 64)
-      state.shapes.push(viewer.addCurve({ points: pts, radius: 0.012, color: colors.shell }))
-    })
+    // Each shell precesses (tumbles) around its own axis, distinct per shell
+    const precessionAxes = shells.map((_, i) => normalize(cross(shellBasis[i].u, shellBasis[i].v)))
+    const precessionDirs = shells.map((_, i) => (i % 2 === 0 ? 1 : -1))
 
     let t = 0
     const tick = () => {
-      state.electronShapes.forEach(s => viewer.removeShape(s))
+      ;[...state.shellShapes, ...state.electronShapes].forEach(s => viewer.removeShape(s))
+      state.shellShapes = []
       state.electronShapes = []
       shells.forEach((count, i) => {
         if (count <= 0) return
-        const { u, v } = shellBasis[i]
+        const precessAngle = t * SHELL_PRECESSION_SPEED * precessionDirs[i] / (1 + i * 0.25)
+        const u = rotateAroundAxis(shellBasis[i].u, precessionAxes[i], precessAngle)
+        const v = rotateAroundAxis(shellBasis[i].v, precessionAxes[i], precessAngle)
         const radius = shellRadii[i]
+
+        const pts = circlePoints({ x: 0, y: 0, z: 0 }, radius, u, v, 64)
+        state.shellShapes.push(viewer.addCurve({ points: pts, radius: 0.012, color: colors.shell }))
+
         const speed = ELECTRON_SPEED / (1 + i * 0.4)
         for (let e = 0; e < count; e++) {
           const angle = (e / count) * Math.PI * 2 + t * speed
