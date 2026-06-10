@@ -79,7 +79,12 @@ export default function App() {
   const runReaction = (input) => {
     const parsed = parseReaction(input)
     if (!parsed) {
-      setReactionError('Use the format: Reactant + Reactant -> Product + Product')
+      setReactionError('Enter reactants and products as "A + B -> C + D", or just the reactants as "A + B"')
+      setReaction(null)
+      return
+    }
+    if (!parsed.products) {
+      setReactionError("Couldn't predict the products for these reactants — try writing the full equation with '->'")
       setReaction(null)
       return
     }
@@ -241,7 +246,7 @@ export default function App() {
               <input
                 className="search-input"
                 type="text"
-                placeholder="CH4 + 2 O2 -> CO2 + 2 H2O"
+                placeholder="CH4 + 2 O2 -> CO2 + 2 H2O  (or just CH4 + O2)"
                 value={reactionInput}
                 onChange={e => setReactionInput(e.target.value)}
                 autoFocus

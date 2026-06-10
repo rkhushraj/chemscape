@@ -1,21 +1,62 @@
 const BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug'
 
-export async function fetchCompound(query) {
-  // Try to resolve CID from name or formula
+// PubChem throttles to ~5 requests/second and returns 503 ("server busy") when
+// too many requests land at once — easy to trigger when several molecule cards
+// load in parallel. Serialize all PubChem requests with a small gap, and retry
+// 503s with backoff.
+let requestQueue = Promise.resolve()
+
+function pubchemFetch(url) {
+  const run = async () => {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await fetch(url)
+      if (res.status !== 503) return res
+      await new Promise(r => setTimeout(r, 300 * (attempt + 1)))
+    }
+    return fetch(url)
+  }
+  const result = requestQueue.then(run, run)
+  requestQueue = result.then(() => new Promise(r => setTimeout(r, 120)), () => new Promise(r => setTimeout(r, 120)))
+  return result
+}
+
+// Looks up a CID by name; for bare formula-like queries (e.g. "AgNO3"), falls
+// back to PubChem's formula search since name search often can't match formulas
+// for ionic/polyatomic compounds.
+async function findCid(query) {
   const nameUrl = `${BASE}/compound/name/${encodeURIComponent(query)}/cids/JSON`
-  const res = await fetch(nameUrl)
-  if (!res.ok) throw new Error(`Couldn't find "${query}" — try a different name or formula!`)
-  const data = await res.json()
-  const cid = data.IdentifierList?.CID?.[0]
+  const res = await pubchemFetch(nameUrl)
+  if (res.ok) {
+    const data = await res.json()
+    const cid = data.IdentifierList?.CID?.[0]
+    if (cid) return cid
+  }
+
+  if (/^[A-Za-z0-9()]+$/.test(query)) {
+    const formulaUrl = `${BASE}/compound/fastformula/${encodeURIComponent(query)}/cids/JSON?MaxRecords=1`
+    const formulaRes = await pubchemFetch(formulaUrl)
+    if (formulaRes.ok) {
+      const data = await formulaRes.json()
+      const cid = data.IdentifierList?.CID?.[0]
+      if (cid) return cid
+    }
+  }
+
+  return null
+}
+
+export async function fetchCompound(query, altQuery) {
+  let cid = await findCid(query)
+  if (!cid && altQuery && altQuery !== query) cid = await findCid(altQuery)
   if (!cid) throw new Error(`Couldn't find "${query}" — try a different name or formula!`)
 
   // Fetch 3D SDF
   const sdfUrl = `${BASE}/compound/cid/${cid}/SDF?record_type=3d`
-  const sdfRes = await fetch(sdfUrl)
+  const sdfRes = await pubchemFetch(sdfUrl)
   if (!sdfRes.ok) {
     // Fall back to 2D if no 3D coords available
     const sdf2dUrl = `${BASE}/compound/cid/${cid}/SDF`
-    const sdf2dRes = await fetch(sdf2dUrl)
+    const sdf2dRes = await pubchemFetch(sdf2dUrl)
     if (!sdf2dRes.ok) throw new Error('Could not fetch structure data')
     const sdf = await sdf2dRes.text()
     return { cid, sdf, is2d: true }
@@ -26,7 +67,7 @@ export async function fetchCompound(query) {
 
 export async function fetchCompoundInfo(cid) {
   const url = `${BASE}/compound/cid/${cid}/property/IUPACName,MolecularFormula,MolecularWeight,InChIKey,XLogP,HBondDonorCount,HBondAcceptorCount,RotatableBondCount/JSON`
-  const res = await fetch(url)
+  const res = await pubchemFetch(url)
   if (!res.ok) return null
   const data = await res.json()
   const props = data.PropertyTable?.Properties?.[0] ?? null

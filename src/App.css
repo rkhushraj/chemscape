@@ -472,6 +472,12 @@
   padding: 6px;
   border-top: 1px solid var(--border);
 }
+.state-label {
+  font-size: 0.85em;
+  color: var(--text2);
+  margin-left: 2px;
+  font-style: italic;
+}
 .mol-coeff {
   position: absolute;
   top: 6px;
@@ -507,25 +513,11 @@
   align-items: center;
   position: relative;
   width: 64px;
-  height: 4px;
+  height: 2px;
   background: var(--border);
   border-radius: 2px;
   flex-shrink: 0;
   transition: background 0.4s ease;
-}
-.arrow-shaft {
-  position: absolute;
-  inset: 0;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-  background-size: 200% 100%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.reaction-arrow.reacting .arrow-shaft,
-.reaction-arrow.done .arrow-shaft {
-  opacity: 1;
-  animation: arrow-flow 1.1s linear infinite;
 }
 .arrow-head {
   position: absolute;
@@ -536,13 +528,11 @@
   font-size: 14px;
   transition: color 0.4s ease;
 }
-.reaction-arrow.reacting .arrow-head,
-.reaction-arrow.done .arrow-head {
-  color: var(--accent2);
+.reaction-arrow.reacting {
+  background: var(--accent2);
 }
-@keyframes arrow-flow {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
+.reaction-arrow.reacting .arrow-head {
+  color: var(--accent2);
 }
 
 .reaction-arrow.no-reaction {

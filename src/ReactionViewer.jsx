@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import MoleculeCard from './MoleculeCard.jsx'
 import { RichText } from './Formula.jsx'
-import { analyzeReaction } from './chemistry.js'
+import { analyzeReaction, resolveFormula, FORMULA_NAMES } from './chemistry.js'
 
 function reactantAnimState(phase) {
   switch (phase) {
@@ -41,31 +41,40 @@ export default function ReactionViewer({ reaction }) {
   return (
     <div className="reaction-viewer">
       <div className="reaction-row">
-        {reaction.reactants.map((r, i) => (
-          <MoleculeCard
-            key={`r-${i}-${r.formula}`}
-            formula={r.formula}
-            coeff={r.coeff}
-            spinning={step.phase !== 'reactants'}
-            animState={reactantAnimState(step.phase)}
-          />
-        ))}
+        {reaction.reactants.map((r, i) => {
+          const resolved = resolveFormula(r.formula) ?? r.formula
+          return (
+            <MoleculeCard
+              key={`r-${i}-${r.formula}`}
+              formula={resolved}
+              altQuery={FORMULA_NAMES[resolved] ?? r.formula}
+              matterState={r.state}
+              coeff={r.coeff}
+              spinning={step.phase !== 'reactants'}
+              animState={reactantAnimState(step.phase)}
+            />
+          )
+        })}
 
         <div className={`reaction-arrow ${arrowState(step.phase)}`}>
-          <span className="arrow-shaft" />
           <span className="arrow-head">▶</span>
           {step.phase === 'no-reaction' && <span className="arrow-cross">✕</span>}
         </div>
 
-        {showProducts && reaction.products.map((p, i) => (
-          <MoleculeCard
-            key={`p-${i}-${p.formula}`}
-            formula={p.formula}
-            coeff={p.coeff}
-            spinning={step.phase === 'forming' || step.phase === 'result'}
-            animState={productAnimState(step.phase)}
-          />
-        ))}
+        {showProducts && reaction.products.map((p, i) => {
+          const resolved = resolveFormula(p.formula) ?? p.formula
+          return (
+            <MoleculeCard
+              key={`p-${i}-${p.formula}`}
+              formula={resolved}
+              altQuery={FORMULA_NAMES[resolved] ?? p.formula}
+              matterState={p.state}
+              coeff={p.coeff}
+              spinning={step.phase === 'forming' || step.phase === 'result'}
+              animState={productAnimState(step.phase)}
+            />
+          )
+        })}
       </div>
 
       <div className="step-panel">

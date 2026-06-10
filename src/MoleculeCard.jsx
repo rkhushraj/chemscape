@@ -3,17 +3,17 @@ import MolViewer from './MolViewer.jsx'
 import FormulaText from './Formula.jsx'
 import { fetchCompound } from './pubchem.js'
 
-export default function MoleculeCard({ formula, coeff, spinning, animState }) {
+export default function MoleculeCard({ formula, coeff, spinning, animState, matterState, altQuery }) {
   const [state, setState] = useState({ loading: true, error: null, mol: null })
 
   useEffect(() => {
     let cancelled = false
     setState({ loading: true, error: null, mol: null })
-    fetchCompound(formula)
+    fetchCompound(formula, altQuery)
       .then(mol => { if (!cancelled) setState({ loading: false, error: null, mol }) })
       .catch(e => { if (!cancelled) setState({ loading: false, error: e.message, mol: null }) })
     return () => { cancelled = true }
-  }, [formula])
+  }, [formula, altQuery])
 
   return (
     <div className={`mol-card ${animState}`}>
@@ -30,7 +30,7 @@ export default function MoleculeCard({ formula, coeff, spinning, animState }) {
           />
         )}
       </div>
-      <div className="mol-card-name"><FormulaText formula={formula} /></div>
+      <div className="mol-card-name"><FormulaText formula={formula} state={matterState} /></div>
     </div>
   )
 }

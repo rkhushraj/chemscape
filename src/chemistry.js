@@ -56,7 +56,7 @@ export const COMMON_NAMES = {
   'water': 'H2O',
   'acetic acid': 'CH3COOH',
   'sodium hydroxide': 'NaOH',
-  'sodium acetate': 'CH3COONa',
+  'sodium acetate': 'NaCH3COO',
   'sodium chloride': 'NaCl',
   'sodium nitrate': 'NaNO3',
   'sodium sulfate': 'Na2SO4',
@@ -81,6 +81,13 @@ export const COMMON_NAMES = {
   'zinc': 'Zn',
   'copper': 'Cu',
   'magnesium': 'Mg',
+}
+
+// Reverse of COMMON_NAMES: maps a formula back to a common name, used as a
+// fallback search term for compounds PubChem can't resolve by formula alone.
+export const FORMULA_NAMES = {}
+for (const [name, formula] of Object.entries(COMMON_NAMES)) {
+  if (!(formula in FORMULA_NAMES)) FORMULA_NAMES[formula] = name
 }
 
 // Resolves a user-typed term (formula or common name) to a chemical formula.
@@ -291,6 +298,209 @@ export function isSoluble(formula) {
   return false // CO3, PO4, S, SO3, CrO4
 }
 
+// ── State of matter inference ───────────────────────────────────
+
+const GAS_FORMULAS = new Set([
+  'H2', 'O2', 'N2', 'F2', 'Cl2', 'CO2', 'CO', 'NH3', 'CH4', 'SO2', 'SO3',
+  'NO', 'NO2', 'N2O', 'H2S', 'HBr', 'HI', 'HF',
+])
+const LIQUID_FORMULAS = new Set(['H2O', 'Br2'])
+const AQUEOUS_FORMULAS = new Set(['HCl', 'H2SO4', 'HNO3', 'CH3COOH', 'H3PO4', 'H2CO3'])
+
+// Guesses a reasonable default state of matter (s/l/g/aq) for a formula when
+// the user didn't specify one.
+export function inferState(formula) {
+  if (!formula) return null
+  if (GAS_FORMULAS.has(formula)) return 'g'
+  if (LIQUID_FORMULAS.has(formula)) return 'l'
+  if (AQUEOUS_FORMULAS.has(formula)) return 'aq'
+  if (isElementFormula(formula)) return 's'
+  if (isBase(formula)) return isSoluble(formula) ? 'aq' : 's'
+  const sol = isSoluble(formula)
+  if (sol === true) return 'aq'
+  if (sol === false) return 's'
+  return null
+}
+
+// ── Product prediction (when the user only enters reactants) ───
+
+const ACID_ANIONS = {
+  HCl: { anion: 'Cl', charge: -1 },
+  HBr: { anion: 'Br', charge: -1 },
+  HI: { anion: 'I', charge: -1 },
+  HF: { anion: 'F', charge: -1 },
+  HNO3: { anion: 'NO3', charge: -1 },
+  H2SO4: { anion: 'SO4', charge: -2 },
+  H2CO3: { anion: 'CO3', charge: -2 },
+  H3PO4: { anion: 'PO4', charge: -3 },
+  CH3COOH: { anion: 'CH3COO', charge: -1 },
+}
+
+const HALOGENS = ['F2', 'Cl2', 'Br2', 'I2']
+
+// Common molecular compounds formed from pairs of elements, keyed by their
+// sorted element symbols (e.g. ['Cl','H'] -> "Cl,H" -> HCl).
+const SYNTHESIS_PRODUCTS = {
+  'H,O': { formula: 'H2O', state: 'l' },
+  'H,N': { formula: 'NH3', state: 'g' },
+  'Cl,H': { formula: 'HCl', state: 'g' },
+  'Br,H': { formula: 'HBr', state: 'g' },
+  'H,I': { formula: 'HI', state: 'g' },
+  'F,H': { formula: 'HF', state: 'g' },
+  'H,S': { formula: 'H2S', state: 'g' },
+  'C,O': { formula: 'CO2', state: 'g' },
+}
+
+// Charges nonmetals take on when forming an ionic compound with a metal.
+const NONMETAL_ANION_CHARGES = { O: -2, S: -2, N: -3, P: -3, Cl: -1, Br: -1, I: -1, F: -1 }
+
+function ionPart(symbol, count) {
+  if (count <= 1) return symbol
+  // Single-element symbols (e.g. "Cl", "O") don't need parentheses; polyatomic
+  // groups (e.g. "NH4", "SO4", "CH3COO") do, e.g. "ZnCl2" vs "(NH4)2SO4".
+  const isSingleElement = /^[A-Z][a-z]?$/.test(symbol)
+  return isSingleElement ? `${symbol}${count}` : `(${symbol})${count}`
+}
+
+// Builds an ionic formula, cation first, e.g. ('Ca', 2, 'Cl', -1) -> "CaCl2"
+function buildIonicFormula(cation, cationCharge, anion, anionCharge) {
+  const g = gcd(Math.abs(cationCharge), Math.abs(anionCharge))
+  const nCation = Math.abs(anionCharge) / g
+  const nAnion = Math.abs(cationCharge) / g
+  return ionPart(cation, nCation) + ionPart(anion, nAnion)
+}
+
+// Given a base formula, returns its cation symbol and charge, e.g.
+// "Ca(OH)2" -> { cation: 'Ca', charge: 2 }, "NH3" -> { cation: 'NH4', charge: 1 }
+function baseCation(formula) {
+  if (formula === 'NH3' || formula === 'NH4OH') return { cation: 'NH4', charge: 1 }
+  const m = formula.match(/^([A-Z][a-z]?)\(OH\)(\d*)$/) || formula.match(/^([A-Z][a-z]?)OH$/)
+  if (!m) return null
+  return { cation: m[1], charge: m[2] ? parseInt(m[2], 10) : 1 }
+}
+
+// Predicts the products of a reaction given only its reactants, covering the
+// common reaction types (combustion, acid-base, displacement, synthesis,
+// decomposition). Returns an array of { formula, state } or null if the
+// products can't be confidently predicted.
+export function predictProducts(reactants) {
+  const R = reactants.map(t => ({ ...t, resolvedFormula: resolveFormula(t.formula) }))
+  if (R.some(r => !r.resolvedFormula)) return null
+  const formulas = R.map(r => r.resolvedFormula)
+
+  // Combustion: hydrocarbon/alcohol + O2 -> CO2 + H2O
+  if (R.length === 2) {
+    const o2 = R.find(r => r.resolvedFormula === 'O2')
+    const fuel = R.find(r => r.resolvedFormula !== 'O2')
+    if (o2 && fuel) {
+      const counts = parseFormula(fuel.resolvedFormula)
+      if (counts.C > 0 && counts.H > 0) {
+        return [{ formula: 'CO2', state: 'g' }, { formula: 'H2O', state: 'l' }]
+      }
+    }
+  }
+
+  // Acid-base neutralization: acid + base -> salt + water
+  if (R.length === 2) {
+    const acid = R.find(r => isAcid(r.resolvedFormula))
+    const base = R.find(r => isBase(r.resolvedFormula))
+    if (acid && base) {
+      const acidInfo = ACID_ANIONS[acid.resolvedFormula]
+      const baseInfo = baseCation(base.resolvedFormula)
+      if (acidInfo && baseInfo) {
+        const salt = buildIonicFormula(baseInfo.cation, baseInfo.charge, acidInfo.anion, acidInfo.charge)
+        return [{ formula: salt, state: inferState(salt) }, { formula: 'H2O', state: 'l' }]
+      }
+    }
+  }
+
+  // Single displacement: metal + acid -> salt + H2
+  if (R.length === 2) {
+    const metal = R.find(r => isElementFormula(r.resolvedFormula) && CATIONS[r.resolvedFormula])
+    const acid = R.find(r => isAcid(r.resolvedFormula))
+    if (metal && acid) {
+      const acidInfo = ACID_ANIONS[acid.resolvedFormula]
+      if (acidInfo) {
+        const salt = buildIonicFormula(metal.resolvedFormula, CATIONS[metal.resolvedFormula], acidInfo.anion, acidInfo.charge)
+        return [{ formula: salt, state: inferState(salt) }, { formula: 'H2', state: 'g' }]
+      }
+    }
+  }
+
+  // Single displacement: metal + salt -> new salt + displaced metal
+  if (R.length === 2) {
+    const elem = R.find(r => isElementFormula(r.resolvedFormula) && CATIONS[r.resolvedFormula])
+    const compound = R.find(r => r !== elem)
+    if (elem && compound) {
+      const ions = getIonsForCompound(compound.resolvedFormula)
+      if (ions && CATIONS[ions.cation] && ions.cation !== elem.resolvedFormula) {
+        const newSalt = buildIonicFormula(elem.resolvedFormula, CATIONS[elem.resolvedFormula], ions.anion, ANIONS[ions.anion])
+        return [{ formula: newSalt, state: inferState(newSalt) }, { formula: ions.cation, state: 's' }]
+      }
+    }
+  }
+
+  // Halogen displacement: halogen + halide salt -> new halide salt + halogen
+  if (R.length === 2) {
+    const halogen = R.find(r => HALOGENS.includes(r.resolvedFormula))
+    const compound = R.find(r => r !== halogen)
+    if (halogen && compound) {
+      const ions = getIonsForCompound(compound.resolvedFormula)
+      const newHalogenSym = elementSymbol(halogen.resolvedFormula)
+      if (ions && ['F', 'Cl', 'Br', 'I'].includes(ions.anion) && ions.anion !== newHalogenSym) {
+        const newSalt = buildIonicFormula(ions.cation, CATIONS[ions.cation], newHalogenSym, -1)
+        const displaced = `${ions.anion}2`
+        return [{ formula: newSalt, state: inferState(newSalt) }, { formula: displaced, state: inferState(displaced) }]
+      }
+    }
+  }
+
+  // Double displacement: two ionic compounds swap ions
+  if (R.length === 2) {
+    const ions0 = getIonsForCompound(R[0].resolvedFormula)
+    const ions1 = getIonsForCompound(R[1].resolvedFormula)
+    if (ions0 && ions1 && ions0.cation !== ions1.cation) {
+      const product1 = buildIonicFormula(ions0.cation, CATIONS[ions0.cation], ions1.anion, ANIONS[ions1.anion])
+      const product2 = buildIonicFormula(ions1.cation, CATIONS[ions1.cation], ions0.anion, ANIONS[ions0.anion])
+      return [
+        { formula: product1, state: inferState(product1) },
+        { formula: product2, state: inferState(product2) },
+      ]
+    }
+  }
+
+  // Synthesis: two elements combine
+  if (R.length === 2 && formulas.every(f => isElementFormula(f))) {
+    const syms = formulas.map(elementSymbol)
+    const key = [...syms].sort().join(',')
+    if (SYNTHESIS_PRODUCTS[key]) {
+      return [SYNTHESIS_PRODUCTS[key]]
+    }
+    const metalIdx = syms.findIndex(s => CATIONS[s])
+    if (metalIdx !== -1) {
+      const metalSym = syms[metalIdx]
+      const nonmetalSym = syms[metalIdx === 0 ? 1 : 0]
+      if (NONMETAL_ANION_CHARGES[nonmetalSym]) {
+        const compound = buildIonicFormula(metalSym, CATIONS[metalSym], nonmetalSym, NONMETAL_ANION_CHARGES[nonmetalSym])
+        return [{ formula: compound, state: inferState(compound) }]
+      }
+    }
+  }
+
+  // Decomposition of a single compound
+  if (R.length === 1) {
+    const formula = R[0].resolvedFormula
+    if (formula === 'H2O2') return [{ formula: 'H2O', state: 'l' }, { formula: 'O2', state: 'g' }]
+    const ions = getIonsForCompound(formula)
+    if (ions && ions.anion === 'CO3' && CATIONS[ions.cation]) {
+      const oxide = buildIonicFormula(ions.cation, CATIONS[ions.cation], 'O', -2)
+      return [{ formula: oxide, state: 's' }, { formula: 'CO2', state: 'g' }]
+    }
+  }
+
+  return null
+}
+
 // ── Classification ──────────────────────────────────────────────
 
 function classify(R, P) {
@@ -417,14 +627,14 @@ function breakingDescription(classification, R) {
     case 'combustion':
       return ['The C–H and C–C bonds in the fuel and the O=O double bonds in O2 all break apart.']
     case 'synthesis':
-      return ['The bonds within ', ...joinFormulas(R.map(r => r.resolvedFormula), ' and '), ' break, freeing the atoms to recombine.']
+      return ['The bonds within ', ...joinFormulas(R, ' and '), ' break, freeing the atoms to recombine.']
     case 'decomposition':
-      return ['The bonds holding ', { f: R[0].resolvedFormula }, ' together break apart, separating it into its components.']
+      return ['The bonds holding ', { f: R[0].resolvedFormula, state: R[0].state }, ' together break apart, separating it into its components.']
     case 'single-displacement':
       return ['The bond between the displaced element and the rest of the compound breaks.']
     case 'double-displacement':
     case 'acid-base':
-      return ['The ionic bonds in both ', ...joinFormulas(R.map(r => r.resolvedFormula), ' and '), ' break, releasing their ions into solution.']
+      return ['The ionic bonds in both ', ...joinFormulas(R, ' and '), ' break, releasing their ions into solution.']
     default:
       return ['Bonds in the reactants break, freeing the atoms to rearrange.']
   }
@@ -435,13 +645,13 @@ function formingDescription(classification, P) {
     case 'combustion':
       return ['New C=O bonds form in CO2 and O–H bonds form in H2O.']
     case 'synthesis':
-      return ['New bonds form between the atoms, creating ', { f: P[0].resolvedFormula }, '.']
+      return ['New bonds form between the atoms, creating ', { f: P[0].resolvedFormula, state: P[0].state }, '.']
     case 'decomposition':
-      return ['The freed atoms settle into new, more stable arrangements: ', ...joinFormulas(P.map(p => p.resolvedFormula), ' and '), '.']
+      return ['The freed atoms settle into new, more stable arrangements: ', ...joinFormulas(P, ' and '), '.']
     case 'single-displacement':
       return ['The displacing element forms a new bond with the compound, while the displaced element is set free.']
     case 'double-displacement':
-      return ['The ions recombine with new partners, forming ', ...joinFormulas(P.map(p => p.resolvedFormula), ' and '), '.']
+      return ['The ions recombine with new partners, forming ', ...joinFormulas(P, ' and '), '.']
     case 'acid-base':
       return ['H+ from the acid combines with OH- from the base to form water, while the remaining ions form a salt.']
     default:
@@ -449,11 +659,12 @@ function formingDescription(classification, P) {
   }
 }
 
-function joinFormulas(formulas, sep) {
+// Builds segments from an array of { resolvedFormula, state } items, e.g. for "A and B".
+function joinFormulas(items, sep) {
   const parts = []
-  formulas.forEach((formula, i) => {
+  items.forEach((item, i) => {
     if (i > 0) parts.push(sep)
-    parts.push({ f: formula })
+    parts.push({ f: item.resolvedFormula ?? item.formula, state: item.state })
   })
   return parts
 }
@@ -464,13 +675,13 @@ function formatBalancedEquation(R, P, balance) {
   R.forEach((r, i) => {
     if (i > 0) lhs.push(' + ')
     if (balance[i] > 1) lhs.push(`${balance[i]} `)
-    lhs.push({ f: r.resolvedFormula })
+    lhs.push({ f: r.resolvedFormula, state: r.state })
   })
   const rhs = []
   P.forEach((p, i) => {
     if (i > 0) rhs.push(' + ')
     if (balance[n + i] > 1) rhs.push(`${balance[n + i]} `)
-    rhs.push({ f: p.resolvedFormula })
+    rhs.push({ f: p.resolvedFormula, state: p.state })
   })
   return [...lhs, ' → ', ...rhs]
 }
@@ -494,7 +705,7 @@ export function analyzeReaction(reactants, products) {
   steps.push({
     title: 'Reactants',
     phase: 'reactants',
-    description: [`We start with `, ...joinFormulas(R.map(r => r.resolvedFormula ?? r.formula), ' and '), '.'],
+    description: [`We start with `, ...joinFormulas(R, ' and '), '.'],
   })
 
   steps.push({
@@ -523,7 +734,7 @@ export function analyzeReaction(reactants, products) {
       phase: 'forming',
       description: formingDescription(classification, P),
     })
-    const resultParts = ['The reaction completes, producing ', ...joinFormulas(P.map(p => p.resolvedFormula ?? p.formula), ' and '), '.']
+    const resultParts = ['The reaction completes, producing ', ...joinFormulas(P, ' and '), '.']
     if (occurrence.reason) resultParts.push(' ' + occurrence.reason)
     steps.push({
       title: 'Result',
@@ -539,7 +750,7 @@ export function analyzeReaction(reactants, products) {
     steps.push({
       title: 'No Reaction',
       phase: 'no-reaction',
-      description: [...joinFormulas(R.map(r => r.resolvedFormula ?? r.formula), ' and '), ' do not react under normal conditions — the substances remain unchanged.'],
+      description: [...joinFormulas(R, ' and '), ' do not react under normal conditions — the substances remain unchanged.'],
     })
   }
 
