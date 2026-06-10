@@ -22,3 +22,59 @@ export function getShellElectrons(atomicNumber) {
   }
   return shells
 }
+
+export const ELEMENT_NAMES = {
+  H: 'Hydrogen', He: 'Helium', Li: 'Lithium', Be: 'Beryllium', B: 'Boron', C: 'Carbon',
+  N: 'Nitrogen', O: 'Oxygen', F: 'Fluorine', Ne: 'Neon',
+  Na: 'Sodium', Mg: 'Magnesium', Al: 'Aluminum', Si: 'Silicon', P: 'Phosphorus', S: 'Sulfur',
+  Cl: 'Chlorine', Ar: 'Argon',
+  K: 'Potassium', Ca: 'Calcium', Sc: 'Scandium', Ti: 'Titanium', V: 'Vanadium', Cr: 'Chromium',
+  Mn: 'Manganese', Fe: 'Iron', Co: 'Cobalt', Ni: 'Nickel', Cu: 'Copper', Zn: 'Zinc',
+  Ga: 'Gallium', Ge: 'Germanium', As: 'Arsenic', Se: 'Selenium', Br: 'Bromine', Kr: 'Krypton',
+  Rb: 'Rubidium', Sr: 'Strontium', Y: 'Yttrium', Zr: 'Zirconium', Nb: 'Niobium', Mo: 'Molybdenum',
+  Tc: 'Technetium', Ru: 'Ruthenium', Rh: 'Rhodium', Pd: 'Palladium', Ag: 'Silver', Cd: 'Cadmium',
+  In: 'Indium', Sn: 'Tin', Sb: 'Antimony', Te: 'Tellurium', I: 'Iodine', Xe: 'Xenon',
+}
+
+// Mass number (protons + neutrons) of the most common isotope
+export const MASS_NUMBERS = {
+  H: 1, He: 4, Li: 7, Be: 9, B: 11, C: 12, N: 14, O: 16, F: 19, Ne: 20,
+  Na: 23, Mg: 24, Al: 27, Si: 28, P: 31, S: 32, Cl: 35, Ar: 40,
+  K: 39, Ca: 40, Sc: 45, Ti: 48, V: 51, Cr: 52, Mn: 55, Fe: 56, Co: 59, Ni: 59, Cu: 64, Zn: 65,
+  Ga: 70, Ge: 73, As: 75, Se: 79, Br: 80, Kr: 84,
+  Rb: 85, Sr: 88, Y: 89, Zr: 91, Nb: 93, Mo: 96, Tc: 98, Ru: 101, Rh: 103, Pd: 106, Ag: 108, Cd: 112,
+  In: 115, Sn: 119, Sb: 122, Te: 128, I: 127, Xe: 131,
+}
+
+const NAME_TO_SYMBOL = Object.fromEntries(
+  Object.entries(ELEMENT_NAMES).map(([symbol, name]) => [name.toLowerCase(), symbol])
+)
+
+// Resolves a search query (symbol, name, or atomic number) to an element record
+export function findElement(query) {
+  const trimmed = query.trim()
+  if (!trimmed) return null
+
+  let symbol = null
+  if (/^\d+$/.test(trimmed)) {
+    const num = parseInt(trimmed, 10)
+    symbol = Object.keys(ATOMIC_NUMBERS).find(s => ATOMIC_NUMBERS[s] === num) ?? null
+  } else if (ATOMIC_NUMBERS[trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase()] != null) {
+    symbol = trimmed[0].toUpperCase() + trimmed.slice(1).toLowerCase()
+  } else {
+    symbol = NAME_TO_SYMBOL[trimmed.toLowerCase()] ?? null
+  }
+
+  if (!symbol || ATOMIC_NUMBERS[symbol] == null) return null
+
+  const atomicNumber = ATOMIC_NUMBERS[symbol]
+  const massNumber = MASS_NUMBERS[symbol] ?? atomicNumber * 2
+  return {
+    symbol,
+    name: ELEMENT_NAMES[symbol],
+    atomicNumber,
+    massNumber,
+    neutrons: massNumber - atomicNumber,
+    shells: getShellElectrons(atomicNumber),
+  }
+}

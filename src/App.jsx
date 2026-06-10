@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import MolViewer from './MolViewer.jsx'
 import ReactionViewer from './ReactionViewer.jsx'
+import AtomViewer from './AtomViewer.jsx'
 import { fetchCompound, fetchCompoundInfo } from './pubchem.js'
 import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
+import { findElement } from './elements.js'
 import './App.css'
 
 const VIEW_MODES = [
@@ -13,6 +15,8 @@ const VIEW_MODES = [
 ]
 
 const SUGGESTIONS = ['Water', 'Caffeine', 'Aspirin', 'Glucose', 'Ethanol', 'ATP', 'Penicillin', 'Dopamine']
+
+const ATOM_SUGGESTIONS = ['Hydrogen', 'Carbon', 'Oxygen', 'Sodium', 'Iron', 'Chlorine', 'Neon', 'Calcium']
 
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('chemscape-theme') || 'dark')
@@ -36,6 +40,11 @@ export default function App() {
   const [reactionInput, setReactionInput] = useState('')
   const [reaction, setReaction] = useState(null)
   const [reactionError, setReactionError] = useState(null)
+
+  const [atomQuery, setAtomQuery] = useState('')
+  const [atomResult, setAtomResult] = useState(null)
+  const [atomError, setAtomError] = useState(null)
+  const atomViewerRef = useRef(null)
 
   const search = useCallback(async (q) => {
     const trimmed = q.trim()
@@ -77,6 +86,22 @@ export default function App() {
     setReaction(parsed)
   }
 
+  const handleAtomSubmit = (e) => {
+    e.preventDefault()
+    searchAtom(atomQuery)
+  }
+
+  const searchAtom = (q) => {
+    const element = findElement(q)
+    if (!element) {
+      setAtomError(`Couldn't find an element matching "${q}" — try a name, symbol, or atomic number!`)
+      setAtomResult(null)
+      return
+    }
+    setAtomError(null)
+    setAtomResult(element)
+  }
+
   return (
     <div className="app">
       <div className="sidebar">
@@ -105,6 +130,12 @@ export default function App() {
             onClick={() => setMode('compound')}
           >
             Compound
+          </button>
+          <button
+            className={mode === 'atom' ? 'active' : ''}
+            onClick={() => setMode('atom')}
+          >
+            Atom
           </button>
           <button
             className={mode === 'reaction' ? 'active' : ''}
@@ -143,6 +174,60 @@ export default function App() {
               ))}
             </div>
           </div>
+        )}
+
+        {mode === 'atom' && (
+          <>
+            <form onSubmit={handleAtomSubmit} className="search-form">
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search…"
+                value={atomQuery}
+                onChange={e => setAtomQuery(e.target.value)}
+                autoFocus
+              />
+              <button className="search-btn" type="submit">
+                Search
+              </button>
+            </form>
+
+            {atomError && <div className="error-box">{atomError}</div>}
+
+            {!atomResult && !atomError && (
+              <div className="suggestions">
+                <p className="suggestions-label">Try</p>
+                <div className="suggestions-grid">
+                  {ATOM_SUGGESTIONS.map(s => (
+                    <button key={s} className="suggestion-chip" onClick={() => { setAtomQuery(s); searchAtom(s) }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {atomResult && (
+              <button className="reset-btn" onClick={() => atomViewerRef.current?.resetView()}>
+                Reset View
+              </button>
+            )}
+
+            {atomResult && (
+              <div className="info-panel">
+                <p className="section-label">{atomResult.name}</p>
+                <div className="info-grid">
+                  <InfoRow label="Symbol" value={atomResult.symbol} />
+                  <InfoRow label="Atomic Number" value={atomResult.atomicNumber} />
+                  <InfoRow label="Mass Number" value={atomResult.massNumber} />
+                  <InfoRow label="Protons" value={atomResult.atomicNumber} />
+                  <InfoRow label="Neutrons" value={atomResult.neutrons} />
+                  <InfoRow label="Electrons" value={atomResult.atomicNumber} />
+                  <InfoRow label="Electron Shells" value={atomResult.shells.join(', ')} />
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {mode === 'reaction' && (
@@ -287,6 +372,29 @@ export default function App() {
                 ))}
               </div>
             )}
+          </>
+        )}
+
+        {mode === 'atom' && !atomResult && (
+          <div className="empty-state">
+            <div className="empty-icon">⚛</div>
+            <p>Search for an element to see its atomic structure</p>
+          </div>
+        )}
+        {mode === 'atom' && atomResult && (
+          <>
+            <AtomViewer
+              ref={atomViewerRef}
+              protons={atomResult.atomicNumber}
+              neutrons={atomResult.neutrons}
+              shells={atomResult.shells}
+              theme={theme}
+            />
+            <div className="element-legend">
+              <span><i className="dot dot-proton" /> Proton</span>
+              <span><i className="dot dot-neutron" /> Neutron</span>
+              <span><i className="dot dot-shell-electron" /> Electron</span>
+            </div>
           </>
         )}
 

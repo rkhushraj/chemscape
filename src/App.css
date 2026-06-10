@@ -645,8 +645,12 @@
 .dot-bond { background: #ff6b9d; }
 .dot-sea { background: #ffd54a; }
 .dot-transfer { background: #b388ff; }
+.dot-proton { background: #ff5252; }
+.dot-neutron { background: #5c7cfa; }
+.dot-shell-electron { background: #7df9ff; }
 
 [data-theme="light"] .dot-atomic { background: #1aa3c4; }
+[data-theme="light"] .dot-shell-electron { background: #1aa3c4; }
 
 .electron-legend .charge {
   font-style: normal;
