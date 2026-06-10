@@ -443,8 +443,8 @@
 
 .mol-card {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: 180px;
+  height: 180px;
   background: radial-gradient(ellipse at 50% 40%, #0d2020 0%, #060f0f 100%);
   border: 1px solid rgba(var(--accent-rgb), 0.35);
   border-radius: var(--radius);
