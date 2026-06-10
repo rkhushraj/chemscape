@@ -514,7 +514,7 @@
   position: relative;
   width: 64px;
   height: 2px;
-  background: var(--border);
+  background: #fff;
   border-radius: 2px;
   flex-shrink: 0;
   transition: background 0.4s ease;
@@ -524,7 +524,7 @@
   right: -14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--border);
+  color: #fff;
   font-size: 14px;
   transition: color 0.4s ease;
 }
@@ -571,14 +571,14 @@
 /* ── Step-by-step reaction panel ─────────────── */
 .step-panel {
   width: 100%;
-  max-width: 520px;
+  max-width: 760px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px 22px;
+  padding: 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 .step-header {
   display: flex;
@@ -587,7 +587,7 @@
   gap: 8px;
 }
 .step-counter {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text2);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -597,22 +597,22 @@
   color: var(--accent2);
   border: 1px solid var(--accent);
   border-radius: 20px;
-  padding: 3px 12px;
-  font-size: 12px;
+  padding: 4px 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 .step-title {
-  font-size: 17px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text);
   margin: 0;
 }
 .step-description {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.6;
   color: var(--text2);
   margin: 0;
-  min-height: 42px;
+  min-height: 52px;
 }
 .step-nav {
   display: flex;
