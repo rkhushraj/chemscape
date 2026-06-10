@@ -126,16 +126,16 @@ export default function App() {
 
         <div className="mode-switch">
           <button
-            className={mode === 'compound' ? 'active' : ''}
-            onClick={() => setMode('compound')}
-          >
-            Compound
-          </button>
-          <button
             className={mode === 'atom' ? 'active' : ''}
             onClick={() => setMode('atom')}
           >
             Atom
+          </button>
+          <button
+            className={mode === 'compound' ? 'active' : ''}
+            onClick={() => setMode('compound')}
+          >
+            Compound
           </button>
           <button
             className={mode === 'reaction' ? 'active' : ''}
