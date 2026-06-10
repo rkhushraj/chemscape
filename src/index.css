@@ -7,12 +7,31 @@
   --border: #2a2a3f;
   --accent: #6c63ff;
   --accent2: #00d4ff;
+  --accent-rgb: 108, 99, 255;
   --text: #e8e8f0;
   --text2: #888899;
   --error: #ff6b6b;
   --success: #50fa7b;
+  --overlay-bg: rgba(10, 10, 15, 0.7);
+  --overlay-border: rgba(255, 255, 255, 0.1);
   --radius: 12px;
   --font: 'Inter', system-ui, sans-serif;
+}
+
+[data-theme="light"] {
+  --bg: #f6f4fb;
+  --surface: #ffffff;
+  --surface2: #f1edfa;
+  --border: #e3defa;
+  --accent: #a594ff;
+  --accent2: #6fd6ef;
+  --accent-rgb: 165, 148, 255;
+  --text: #4a4660;
+  --text2: #9893ad;
+  --error: #ff9a9a;
+  --success: #8fe3ad;
+  --overlay-bg: rgba(255, 255, 255, 0.75);
+  --overlay-border: rgba(74, 70, 96, 0.12);
 }
 
 html, body, #root {
@@ -20,6 +39,7 @@ html, body, #root {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 body {

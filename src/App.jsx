@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import MolViewer from './MolViewer.jsx'
 import ReactionViewer from './ReactionViewer.jsx'
 import { fetchCompound, fetchCompoundInfo } from './pubchem.js'
@@ -15,7 +15,13 @@ const VIEW_MODES = [
 const SUGGESTIONS = ['Water', 'Caffeine', 'Aspirin', 'Glucose', 'Ethanol', 'ATP', 'Penicillin', 'Dopamine']
 
 export default function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem('chemscape-theme') || 'dark')
   const [mode, setMode] = useState('compound') // 'compound' | 'reaction'
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('chemscape-theme', theme)
+  }, [theme])
 
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -76,6 +82,14 @@ export default function App() {
         <div className="brand">
           <span className="brand-icon">⬡</span>
           <span className="brand-name">ChemScape</span>
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+            aria-label="Toggle light/dark theme"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
         </div>
 
         <div className="mode-switch">
@@ -251,7 +265,7 @@ export default function App() {
                 <span><i className="charge charge-pos">+</i> / <i className="charge charge-neg">−</i> Ionic charge</span>
               </div>
             )}
-            <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} />
+            <MolViewer ref={viewerRef} sdf={mol.sdf} viewMode={viewMode} is2d={mol.is2d} showLabels={showLabels} theme={theme} />
           </>
         )}
 

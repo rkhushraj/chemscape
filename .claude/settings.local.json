@@ -7,7 +7,11 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "Bash(grep -o \"screenOffset\\\\|alignment:[^,}]*\\\\|Label.alignmentTypes\\\\|exports.alignmentTypes\\\\|alignmentTypes = {[^}]*}\" /Users/rkhushraj/Development/chemscape/node_modules/3dmol/build/3Dmol.es6.js)",
+      "Bash(curl -s \"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/9989226/SDF\")",
+      "Bash(npx netlify *)"
     ]
   }
 }

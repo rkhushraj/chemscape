@@ -6,10 +6,13 @@ const SURFACE_TYPE = $3Dmol.SurfaceType?.VDW ?? 1
 
 const SHELL_BASE_RADIUS = 0.4
 const SHELL_RADIUS_STEP = 0.3
-const SHELL_COLOR = '#4a5a7a'
 const ELECTRON_RADIUS = 0.045
-const ELECTRON_COLOR = '#7df9ff'      // non-bonding valence electrons
 const ELECTRON_SPEED = 0.5
+
+const THEME_COLORS = {
+  dark: { bg: 0x0a0a0f, shell: '#4a5a7a', electron: '#7df9ff' },
+  light: { bg: 0xf6f4fb, shell: '#c3b8e8', electron: '#1aa3c4' },
+}
 const BOND_ELECTRON_COLOR = '#ff6b9d' // shared covalent pairs
 const SEA_ELECTRON_COLOR = '#ffd54a'  // delocalized metallic electrons
 const SEA_COLOR = '#ffd54a'
@@ -135,10 +138,11 @@ function addChargeLabels(viewer, electronState) {
   })
 }
 
-function startElectronShells(viewer, electronState) {
+function startElectronShells(viewer, electronState, theme) {
   const model = viewer.getModel()
   if (!model) return
   const state = electronState.current
+  const colors = THEME_COLORS[theme] ?? THEME_COLORS.dark
   const { atomMeta, covalentPairs, metallicCluster, ionicTransfers } = analyzeBonding(model)
 
   const atomInfo = []
@@ -156,7 +160,7 @@ function startElectronShells(viewer, electronState) {
       const radius = SHELL_BASE_RADIUS + (shells.length - 1) * SHELL_RADIUS_STEP
       if (valenceCount > 0) {
         const pts = circlePoints(atom, radius, u, v)
-        state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.01, color: SHELL_COLOR }))
+        state.staticShapes.push(viewer.addCurve({ points: pts, radius: 0.01, color: colors.shell }))
         atomInfo.push({ atom, count: valenceCount, radius, u, v })
       }
     }
@@ -221,7 +225,7 @@ function startElectronShells(viewer, electronState) {
           y: atom.y + radius * (Math.cos(angle) * u.y + Math.sin(angle) * v.y),
           z: atom.z + radius * (Math.cos(angle) * u.z + Math.sin(angle) * v.z),
         }
-        state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: ELECTRON_COLOR }))
+        state.electronShapes.push(viewer.addSphere({ center: pos, radius: ELECTRON_RADIUS, color: colors.electron }))
       }
     })
 
@@ -283,7 +287,7 @@ function startElectronShells(viewer, electronState) {
   state.timer = setInterval(tick, ELECTRON_TICK_MS)
 }
 
-const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spinning }, ref) {
+const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spinning, theme }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
   const electronState = useRef({
@@ -306,7 +310,7 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
   useEffect(() => {
     if (!containerRef.current) return
     const viewer = $3Dmol.createViewer(containerRef.current, {
-      backgroundColor: '0x0a0a0f',
+      backgroundColor: (THEME_COLORS[theme] ?? THEME_COLORS.dark).bg,
       antialias: true,
     })
     viewerRef.current = viewer
@@ -322,13 +326,14 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
     clearElectronShells(viewer, electronState)
     viewer.clear()
     viewer.removeAllSurfaces()
+    viewer.setBackgroundColor((THEME_COLORS[theme] ?? THEME_COLORS.dark).bg)
     viewer.addModel(sdf, 'sdf')
     applyStyle(viewer, viewMode)
     if (showLabels) addAtomLabels(viewer)
     viewer.zoomTo()
     viewer.render()
     if (spinning) viewer.spin('y', 0.6)
-    if (viewMode === 'electron-shells') startElectronShells(viewer, electronState)
+    if (viewMode === 'electron-shells') startElectronShells(viewer, electronState, theme)
   }, [sdf])
 
   useEffect(() => {
@@ -339,8 +344,19 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, showLabels, spi
     applyStyle(viewer, viewMode)
     if (showLabels) addAtomLabels(viewer); else viewer.removeAllLabels()
     viewer.render()
-    if (viewMode === 'electron-shells') startElectronShells(viewer, electronState)
+    if (viewMode === 'electron-shells') startElectronShells(viewer, electronState, theme)
   }, [viewMode])
+
+  useEffect(() => {
+    const viewer = viewerRef.current
+    if (!viewer || !sdf) return
+    viewer.setBackgroundColor((THEME_COLORS[theme] ?? THEME_COLORS.dark).bg)
+    if (viewMode === 'electron-shells') {
+      clearElectronShells(viewer, electronState)
+      startElectronShells(viewer, electronState, theme)
+    }
+    viewer.render()
+  }, [theme])
 
   useEffect(() => {
     const viewer = viewerRef.current
