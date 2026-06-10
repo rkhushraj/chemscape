@@ -17,7 +17,6 @@ export default function MoleculeCard({ formula, coeff, spinning, animState, matt
 
   return (
     <div className={`mol-card ${animState}`}>
-      {coeff > 1 && <span className="mol-coeff">{coeff}×</span>}
       <div className="mol-card-viewer">
         {state.loading && <span className="spinner" />}
         {state.error && <div className="mol-card-error">Not found</div>}

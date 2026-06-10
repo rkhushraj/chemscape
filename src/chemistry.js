@@ -575,7 +575,7 @@ function classify(R, P) {
     return {
       type: 'combustion',
       label: 'Combustion',
-      reason: 'A carbon- and hydrogen-containing compound reacts with O2 to produce CO2 and H2O — the signature of a combustion reaction.',
+      reason: ['A carbon- and hydrogen-containing compound reacts with ', { f: 'O2' }, ' to produce ', { f: 'CO2' }, ' and ', { f: 'H2O' }, ' — the signature of a combustion reaction.'],
     }
   }
 
@@ -583,7 +583,7 @@ function classify(R, P) {
     return {
       type: 'decomposition',
       label: 'Decomposition',
-      reason: `A single compound (${R[0].resolvedFormula}) breaks down into ${P.length} simpler substances.`,
+      reason: ['A single compound (', { f: R[0].resolvedFormula, state: R[0].state }, ') breaks down into ', String(P.length), ' simpler substances.'],
     }
   }
 
@@ -591,7 +591,7 @@ function classify(R, P) {
     return {
       type: 'synthesis',
       label: 'Synthesis (Combination)',
-      reason: `${R.length} substances combine to form a single product, ${P[0].resolvedFormula}.`,
+      reason: [String(R.length), ' substances combine to form a single product, ', { f: P[0].resolvedFormula, state: P[0].state }, '.'],
     }
   }
 
@@ -605,7 +605,7 @@ function classify(R, P) {
       return {
         type: 'single-displacement',
         label: 'Single Displacement',
-        reason: `${rEl[0].resolvedFormula} is a free element that displaces another element from ${rCo[0].resolvedFormula}.`,
+        reason: [{ f: rEl[0].resolvedFormula }, ' is a free element that displaces another element from ', { f: rCo[0].resolvedFormula }, '.'],
       }
     }
 
@@ -616,13 +616,13 @@ function classify(R, P) {
         return {
           type: 'acid-base',
           label: 'Acid–Base (Neutralization)',
-          reason: `${acid.resolvedFormula} is an acid and ${base.resolvedFormula} is a base — they neutralize each other to form a salt and water.`,
+          reason: [{ f: acid.resolvedFormula }, ' is an acid and ', { f: base.resolvedFormula }, ' is a base — they neutralize each other to form a salt and water.'],
         }
       }
       return {
         type: 'double-displacement',
         label: 'Double Displacement',
-        reason: 'The positive and negative ions of the two reactant compounds swap partners to form two new compounds.',
+        reason: ['The positive and negative ions of the two reactant compounds swap partners to form two new compounds.'],
       }
     }
   }
@@ -630,7 +630,7 @@ function classify(R, P) {
   return {
     type: 'other',
     label: 'Other / Complex Reaction',
-    reason: "This reaction doesn't fit a single standard category — it may be a multi-step or combined reaction.",
+    reason: ["This reaction doesn't fit a single standard category — it may be a multi-step or combined reaction."],
   }
 }
 
@@ -650,9 +650,9 @@ function checkOccurrence(classification, R, P) {
     const bi = activityIndex(b)
     if (ai && bi && ai.series === bi.series) {
       if (ai.idx < bi.idx) {
-        return { occurs: true, reason: `${a} is more reactive than ${b} (higher on the reactivity series), so it can displace ${b}.` }
+        return { occurs: true, reason: [a, ' is more reactive than ', b, ' (higher on the reactivity series), so it can displace ', b, '.'] }
       }
-      return { occurs: false, reason: `${a} is less reactive than ${b} on the reactivity series, so it cannot displace ${b} — no reaction occurs.` }
+      return { occurs: false, reason: [a, ' is less reactive than ', b, ' on the reactivity series, so it cannot displace ', b, ' — no reaction occurs.'] }
     }
     return { occurs: true, reason: null }
   }
@@ -663,13 +663,13 @@ function checkOccurrence(classification, R, P) {
     const gasOrWater = P.some(p => ['H2O', 'CO2', 'NH3'].includes(p.resolvedFormula))
 
     if (precipitate) {
-      return { occurs: true, reason: `${precipitate.formula} is insoluble and precipitates out of solution — this is the driving force for the reaction.` }
+      return { occurs: true, reason: [{ f: precipitate.formula }, ' is insoluble and precipitates out of solution — this is the driving force for the reaction.'] }
     }
     if (gasOrWater) {
-      return { occurs: true, reason: 'A gas or water forms, driving the reaction forward.' }
+      return { occurs: true, reason: ['A gas or water forms, driving the reaction forward.'] }
     }
     if (solubilities.every(s => s.soluble === true)) {
-      return { occurs: false, reason: 'Both products are soluble in water — the ions stay dissolved and no new substance actually forms. No reaction occurs.' }
+      return { occurs: false, reason: ['Both products are soluble in water — the ions stay dissolved and no new substance actually forms. No reaction occurs.'] }
     }
     return { occurs: true, reason: null }
   }
@@ -773,7 +773,7 @@ export function analyzeReaction(reactants, products) {
 
   const classification = allResolved
     ? classify(R, P)
-    : { type: 'unknown', label: 'Unknown', reason: "Couldn't identify all of the substances well enough to classify this reaction." }
+    : { type: 'unknown', label: 'Unknown', reason: ["Couldn't identify all of the substances well enough to classify this reaction."] }
 
   const occurrence = allResolved ? checkOccurrence(classification, R, P) : { occurs: true, reason: null }
 
@@ -789,7 +789,7 @@ export function analyzeReaction(reactants, products) {
   steps.push({
     title: 'Identify the Reaction Type',
     phase: 'reactants',
-    description: [classification.reason],
+    description: classification.reason,
     badge: classification.label,
   })
 
@@ -813,7 +813,7 @@ export function analyzeReaction(reactants, products) {
       description: formingDescription(classification, P, R),
     })
     const resultParts = ['The reaction completes, producing ', ...joinFormulas(P, ' and '), '.']
-    if (occurrence.reason) resultParts.push(' ' + occurrence.reason)
+    if (occurrence.reason) resultParts.push(' ', ...occurrence.reason)
     steps.push({
       title: 'Result',
       phase: 'result',
@@ -823,7 +823,7 @@ export function analyzeReaction(reactants, products) {
     steps.push({
       title: 'Check if the Reaction Proceeds',
       phase: 'reactants',
-      description: [occurrence.reason],
+      description: occurrence.reason,
     })
     steps.push({
       title: 'No Reaction',
