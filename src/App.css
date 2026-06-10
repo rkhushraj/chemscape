@@ -408,7 +408,7 @@
 .empty-icon.element-tile {
   width: 92px;
   height: 92px;
-  font-size: 92px;
+  font-size: 40px;
   opacity: 1;
   animation: tile-float 3.5s ease-in-out infinite;
 }

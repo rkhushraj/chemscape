@@ -388,7 +388,14 @@ export default function App() {
 
         {mode === 'atom' && !atomResult && (
           <div className="empty-state">
-            <div className="empty-icon">⚛</div>
+            <div className="element-tile empty-icon">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" />
+                <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" transform="rotate(60 24 24)" />
+                <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" transform="rotate(120 24 24)" />
+                <circle cx="24" cy="24" r="4" fill="currentColor" />
+              </svg>
+            </div>
             <p>Search for an element to see its 3D atomic structure</p>
           </div>
         )}
@@ -411,7 +418,7 @@ export default function App() {
 
         {mode === 'reaction' && !reaction && (
           <div className="empty-state">
-            <div className="empty-icon">⇌</div>
+            <div className="element-tile empty-icon">⇌</div>
             <p>Enter a reaction to see reactants transform into products</p>
           </div>
         )}
