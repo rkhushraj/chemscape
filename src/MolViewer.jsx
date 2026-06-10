@@ -252,7 +252,7 @@ function startElectronShells(viewer, electronState, theme) {
   state.timer = setInterval(tick, ELECTRON_TICK_MS)
 }
 
-const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, spinning, theme, onLegendChange }, ref) {
+const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, spinning, theme, onLegendChange, zoomFactor = 1 }, ref) {
   const containerRef = useRef(null)
   const viewerRef = useRef(null)
   const electronState = useRef({
@@ -296,6 +296,7 @@ const MolViewer = forwardRef(function MolViewer({ sdf, viewMode, spinning, theme
     applyStyle(viewer, viewMode)
     onLegendChange?.(buildElementLegend(viewer.getModel()))
     viewer.zoomTo()
+    if (zoomFactor !== 1) viewer.zoom(zoomFactor)
     viewer.render()
     if (spinning) viewer.spin('y', 0.6)
     if (viewMode === 'electron-shells') startElectronShells(viewer, electronState, theme)

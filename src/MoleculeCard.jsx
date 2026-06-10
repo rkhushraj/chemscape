@@ -26,6 +26,7 @@ export default function MoleculeCard({ formula, coeff, spinning, animState, matt
             viewMode="ball-stick"
             showLabels={true}
             spinning={spinning}
+            zoomFactor={1.6}
           />
         )}
       </div>
