@@ -1,81 +1,63 @@
 import { useState, useEffect, useMemo } from 'react'
-import MoleculeCard from './MoleculeCard.jsx'
+import ReactionScene from './ReactionScene.jsx'
 import { RichText } from './Formula.jsx'
-import { analyzeReaction, resolveFormula, FORMULA_NAMES } from './chemistry.js'
+import { analyzeReaction, resolveFormula, FORMULA_NAMES, getBondChanges } from './chemistry.js'
+import { fetchCompound } from './pubchem.js'
 
-function reactantAnimState(phase) {
-  switch (phase) {
-    case 'breaking': return 'reacting'
-    case 'forming':
-    case 'result': return 'consumed'
-    case 'no-reaction': return 'no-reaction'
-    default: return ''
-  }
-}
-
-function productAnimState(phase) {
-  return phase === 'forming' || phase === 'result' ? 'formed' : 'pending'
-}
-
-function arrowState(phase) {
-  if (phase === 'no-reaction') return 'no-reaction'
-  if (phase === 'breaking' || phase === 'forming' || phase === 'result') return 'reacting'
-  return ''
-}
-
-export default function ReactionViewer({ reaction }) {
+export default function ReactionViewer({ reaction, theme }) {
   const [stepIndex, setStepIndex] = useState(0)
+  const [reactantSDFs, setReactantSDFs] = useState([])
+  const [productSDFs,  setProductSDFs]  = useState([])
 
   const analysis = useMemo(
     () => analyzeReaction(reaction.reactants, reaction.products),
     [reaction]
   )
 
+  const bondChanges = useMemo(
+    () => analysis.allResolved
+      ? getBondChanges(analysis.classification, reaction.reactants, reaction.products)
+      : null,
+    [analysis, reaction]
+  )
+
+  // Reset step when reaction changes
+  useEffect(() => { setStepIndex(0) }, [reaction])
+
+  // Fetch SDFs for all molecules
   useEffect(() => {
-    setStepIndex(0)
+    setReactantSDFs([])
+    setProductSDFs([])
+
+    const loadSide = async (tokens) => {
+      return Promise.all(
+        tokens.map(async t => {
+          const resolved = resolveFormula(t.formula) ?? t.formula
+          try {
+            const mol = await fetchCompound(resolved, FORMULA_NAMES[resolved] ?? t.formula)
+            return mol.sdf ?? null
+          } catch { return null }
+        })
+      )
+    }
+
+    loadSide(reaction.reactants).then(setReactantSDFs)
+    loadSide(reaction.products).then(setProductSDFs)
   }, [reaction])
 
   const step = analysis.steps[stepIndex]
-  const showProducts = step.phase !== 'no-reaction'
 
   return (
     <div className="reaction-viewer">
-      <div className="reaction-row">
-        {reaction.reactants.map((r, i) => {
-          const resolved = resolveFormula(r.formula) ?? r.formula
-          return (
-            <MoleculeCard
-              key={`r-${i}-${r.formula}`}
-              formula={resolved}
-              altQuery={FORMULA_NAMES[resolved] ?? r.formula}
-              matterState={r.state}
-              coeff={r.coeff}
-              spinning={step.phase !== 'reactants'}
-              animState={reactantAnimState(step.phase)}
-            />
-          )
-        })}
-
-        <div className={`reaction-arrow ${arrowState(step.phase)}`}>
-          <span className="arrow-head">▶</span>
-          {step.phase === 'no-reaction' && <span className="arrow-cross">✕</span>}
-        </div>
-
-        {showProducts && reaction.products.map((p, i) => {
-          const resolved = resolveFormula(p.formula) ?? p.formula
-          return (
-            <MoleculeCard
-              key={`p-${i}-${p.formula}`}
-              formula={resolved}
-              altQuery={FORMULA_NAMES[resolved] ?? p.formula}
-              matterState={p.state}
-              coeff={p.coeff}
-              spinning={step.phase === 'forming' || step.phase === 'result'}
-              animState={productAnimState(step.phase)}
-            />
-          )
-        })}
-      </div>
+      <ReactionScene
+        reactantSDFs={reactantSDFs}
+        productSDFs={productSDFs}
+        reactants={reaction.reactants}
+        products={reaction.products}
+        phase={step.phase}
+        bondChanges={bondChanges}
+        theme={theme}
+      />
 
       <div className="step-panel">
         <div className="step-header">

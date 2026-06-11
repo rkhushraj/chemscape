@@ -430,7 +430,7 @@ export default function App() {
           </div>
         )}
         {mode === 'reaction' && reaction && (
-          <ReactionViewer reaction={reaction} />
+          <ReactionViewer reaction={reaction} theme={theme} />
         )}
       </div>
     </div>

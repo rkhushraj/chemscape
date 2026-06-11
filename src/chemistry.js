@@ -834,3 +834,66 @@ export function analyzeReaction(reactants, products) {
 
   return { classification, occurrence, balance, steps, allResolved }
 }
+
+// ── Bond change info for animation ─────────────────────────────
+// Returns which bond element-pairs break/form per reaction type.
+// patterns: array of [el1, el2] pairs, or 'all' (every bond in that molecule).
+export function getBondChanges(classification, reactants, products) {
+  const R = reactants.map(t => ({ ...t, resolvedFormula: resolveFormula(t.formula) ?? t.formula }))
+  const P = products.map(t => ({ ...t, resolvedFormula: resolveFormula(t.formula) ?? t.formula }))
+
+  switch (classification.type) {
+    case 'combustion': {
+      const fuel = R.find(r => { const e = parseFormula(r.resolvedFormula); return e.C > 0 && e.H > 0 })
+      const o2   = R.find(r => r.resolvedFormula === 'O2')
+      const co2  = P.find(p => p.resolvedFormula === 'CO2')
+      const h2o  = P.find(p => p.resolvedFormula === 'H2O')
+      return {
+        breaking: [
+          ...(fuel ? [{ formula: fuel.resolvedFormula, patterns: [['C','H'],['C','C']] }] : []),
+          ...(o2   ? [{ formula: 'O2',                 patterns: [['O','O']]            }] : []),
+        ],
+        forming: [
+          ...(co2 ? [{ formula: 'CO2', patterns: [['C','O']] }] : []),
+          ...(h2o ? [{ formula: 'H2O', patterns: [['O','H']] }] : []),
+        ],
+      }
+    }
+
+    case 'synthesis':
+      return {
+        breaking: R.map(r => ({ formula: r.resolvedFormula, patterns: 'all' })),
+        forming:  P.map(p => ({ formula: p.resolvedFormula, patterns: 'all' })),
+      }
+
+    case 'decomposition':
+      return {
+        breaking: [{ formula: R[0].resolvedFormula, patterns: 'all' }],
+        forming:  P.map(p => ({ formula: p.resolvedFormula, patterns: 'all' })),
+      }
+
+    case 'single-displacement': {
+      const compound    = R.find(r => !isElementFormula(r.resolvedFormula))
+      const displacedP  = P.find(p =>  isElementFormula(p.resolvedFormula))
+      const displacedEl = displacedP ? elementSymbol(displacedP.resolvedFormula) : null
+      const compoundEls = compound
+        ? Object.keys(parseFormula(compound.resolvedFormula)).filter(el => el !== displacedEl)
+        : []
+      const patterns = (displacedEl && compoundEls.length)
+        ? compoundEls.map(el => [displacedEl, el])
+        : 'all'
+      return {
+        breaking: compound ? [{ formula: compound.resolvedFormula, patterns }] : R.map(r => ({ formula: r.resolvedFormula, patterns: 'all' })),
+        forming:  P.filter(p => !isElementFormula(p.resolvedFormula)).map(p => ({ formula: p.resolvedFormula, patterns: 'all' })),
+      }
+    }
+
+    case 'acid-base':
+    case 'double-displacement':
+    default:
+      return {
+        breaking: R.map(r => ({ formula: r.resolvedFormula, patterns: 'all' })),
+        forming:  P.map(p => ({ formula: p.resolvedFormula, patterns: 'all' })),
+      }
+  }
+}
