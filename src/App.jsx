@@ -187,7 +187,12 @@ export default function App() {
         </form>
         )}
 
-        {mode === 'compound' && error && <div className="error-box">{error}</div>}
+        {mode === 'compound' && error && (
+          <div className="error-box">
+            {error}
+            <p className="error-hint">This compound may be unstable, extremely rare, or not yet in our database.</p>
+          </div>
+        )}
 
         {mode === 'compound' && !mol && !loading && !error && (
           <div className="suggestions">
