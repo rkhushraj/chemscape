@@ -6,6 +6,7 @@ import { fetchCompound, fetchCompoundInfo } from './pubchem.js'
 import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
 import { findElement } from './elements.js'
 import FormulaText, { ReactionText } from './Formula.jsx'
+import ChatWidget from './ChatWidget.jsx'
 import './App.css'
 
 const VIEW_MODES = [
@@ -109,6 +110,7 @@ export default function App() {
   }
 
   return (
+    <>
     <div className="app">
       <div className="sidebar">
         <div className="brand">
@@ -457,6 +459,13 @@ export default function App() {
         )}
       </div>
     </div>
+    <ChatWidget context={{
+      mode,
+      compound: mode === 'compound' ? (info?.IUPACName || query || null) : null,
+      atom: mode === 'atom' ? (atomResult?.name || null) : null,
+      reaction: mode === 'reaction' ? (reactionInput || null) : null,
+    }} />
+    </>
   )
 }
 
