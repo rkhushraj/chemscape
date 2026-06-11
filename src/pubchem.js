@@ -83,7 +83,12 @@ async function findCid(query) {
 export async function fetchCompound(query, altQuery) {
   let cid = await findCid(query)
   if (!cid && altQuery && altQuery !== query) cid = await findCid(altQuery)
-  if (!cid) throw new Error(`Couldn't find "${query}" — try a different name or formula!`)
+  if (!cid) {
+    const proteins = ['hemoglobin', 'collagen', 'keratin', 'myosin', 'actin', 'albumin', 'fibrin', 'enzyme', 'antibody', 'dna', 'rna', 'protein']
+    const isProtein = proteins.some(p => query.toLowerCase().includes(p))
+    if (isProtein) throw new Error(`"${query}" is a large protein or macromolecule — our 3D viewer only supports small molecules. Try searching a simpler compound instead.`)
+    throw new Error(`Couldn't find "${query}" — try a different name or formula!`)
+  }
 
   // Fetch 3D SDF
   const sdfUrl = `${BASE}/compound/cid/${cid}/SDF?record_type=3d`

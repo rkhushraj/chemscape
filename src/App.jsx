@@ -192,7 +192,9 @@ export default function App() {
         {mode === 'compound' && error && (
           <div className="error-box">
             {error}
-            <p className="error-hint">This compound may be unstable, extremely rare, or not yet in our database.</p>
+            {!error.includes('large protein') && (
+              <p className="error-hint">This compound may be unstable, extremely rare, or not yet in our database.</p>
+            )}
           </div>
         )}
 
