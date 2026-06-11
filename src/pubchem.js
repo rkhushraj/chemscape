@@ -1,5 +1,40 @@
 const BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug'
 
+// Non-metal/metalloid element symbols — everything else is treated as a metal/cation
+const NON_METALS = new Set(['H','He','B','C','N','O','F','Ne','Si','P','S','Cl','Ar','As','Se','Br','Kr','Te','I','Xe','At','Rn'])
+
+// Reorders a molecular formula into conventional Hill order:
+// organic (contains C): C first, H second, then rest alphabetically
+// inorganic: metals/cations first (alphabetically), then non-metals (alphabetically)
+function hillOrderFormula(formula) {
+  // Parse into [{symbol, count}] pairs
+  const pairs = []
+  const re = /([A-Z][a-z]?)(\d*)/g
+  let m
+  while ((m = re.exec(formula)) !== null) {
+    if (!m[1]) continue
+    pairs.push({ sym: m[1], n: m[2] ? parseInt(m[2], 10) : 1 })
+  }
+  if (pairs.length === 0) return formula
+
+  const hasCarbon = pairs.some(p => p.sym === 'C')
+  let sorted
+  if (hasCarbon) {
+    // Hill system for organics
+    const c = pairs.filter(p => p.sym === 'C')
+    const h = pairs.filter(p => p.sym === 'H')
+    const rest = pairs.filter(p => p.sym !== 'C' && p.sym !== 'H').sort((a, b) => a.sym.localeCompare(b.sym))
+    sorted = [...c, ...h, ...rest]
+  } else {
+    // Inorganic: metals first, then non-metals, each group alphabetical
+    const metals = pairs.filter(p => !NON_METALS.has(p.sym)).sort((a, b) => a.sym.localeCompare(b.sym))
+    const nonmetals = pairs.filter(p => NON_METALS.has(p.sym)).sort((a, b) => a.sym.localeCompare(b.sym))
+    sorted = [...metals, ...nonmetals]
+  }
+
+  return sorted.map(p => p.sym + (p.n > 1 ? p.n : '')).join('')
+}
+
 // PubChem throttles to ~5 requests/second and returns 503 ("server busy") when
 // too many requests land at once — easy to trigger when several molecule cards
 // load in parallel. Serialize all PubChem requests with a small gap, and retry
@@ -73,6 +108,9 @@ export async function fetchCompoundInfo(cid) {
   const props = data.PropertyTable?.Properties?.[0] ?? null
   if (props?.IUPACName) {
     props.IUPACName = formatIUPACName(props.IUPACName)
+  }
+  if (props?.MolecularFormula) {
+    props.MolecularFormula = hillOrderFormula(props.MolecularFormula)
   }
   return props
 }

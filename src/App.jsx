@@ -255,6 +255,8 @@ export default function App() {
                   <InfoRow label="Neutrons" value={atomResult.neutrons} />
                   <InfoRow label="Electrons" value={atomResult.atomicNumber} />
                   <InfoRow label="Electron Shells" value={atomResult.shells.join(', ')} />
+                  <InfoRow label="Valence Electrons" value={atomResult.shells[atomResult.shells.length - 1]} />
+                  <InfoRow label="Core Electrons" value={atomResult.atomicNumber - atomResult.shells[atomResult.shells.length - 1]} />
                 </div>
               </div>
             )}
