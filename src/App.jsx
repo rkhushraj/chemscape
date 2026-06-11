@@ -15,7 +15,7 @@ const VIEW_MODES = [
   { id: 'electron-shells', label: 'Electron Shells' },
 ]
 
-const SUGGESTIONS = ['Water', 'Caffeine', 'Aspirin', 'Glucose', 'Ethanol', 'ATP', 'Penicillin', 'Dopamine']
+const SUGGESTIONS = ['Water', 'H2O', 'Caffeine', 'CO2', 'Aspirin', 'O2', 'Glucose', 'NH3', 'Ethanol', 'ATP', 'Penicillin', 'Dopamine']
 
 const ATOM_SUGGESTIONS = ['Hydrogen', 'Carbon', 'Oxygen', 'Sodium', 'Iron', 'Chlorine', 'Neon', 'Calcium']
 
@@ -179,7 +179,7 @@ export default function App() {
             <div className="suggestions-grid">
               {SUGGESTIONS.map(s => (
                 <button key={s} className="suggestion-chip" onClick={() => { setQuery(s); search(s) }}>
-                  {s}
+                  <span><FormulaText formula={s} /></span>
                 </button>
               ))}
             </div>
@@ -246,7 +246,7 @@ export default function App() {
               <input
                 className="search-input"
                 type="text"
-                placeholder="CH4 + 2 O2 -> CO2 + 2 H2O  (or just CH4 + O2)"
+                placeholder="Search…"
                 value={reactionInput}
                 onChange={e => setReactionInput(e.target.value)}
                 autoFocus

@@ -34,27 +34,38 @@ export function f(formula, state) {
 }
 
 // Renders a full reaction equation string (e.g. "2 H2(g) + O2(g) -> 2 H2O(l)"),
-// subscripting numbers that are part of a formula while leaving leading
-// coefficients (numbers preceded by whitespace or nothing) as normal text.
-// Each whitespace-delimited token is kept on one line so a formula and its
-// state label (e.g. "H2O(l)") never get split across a wrap.
+// subscripting formula numbers, replacing -> with →, and italicising state labels.
 export function ReactionText({ text }) {
+  // Normalise arrow
+  const normalised = text.replace(/\s*-+>\s*/g, ' → ')
+
   return (
     <span>
-      {text.split(/(\s+)/).map((token, i) => {
+      {normalised.split(/(\s+)/).map((token, i) => {
         if (/^\s+$/.test(token) || token === '') return token
-        const parts = token.split(/(\d+)/)
+
+        // Arrow token
+        if (token === '→') return <span key={i} style={{ whiteSpace: 'nowrap' }}> → </span>
+
+        // Peel off trailing state label: (s), (l), (g), (aq)
+        const stateMatch = token.match(/^(.*?)\((s|l|g|aq)\)$/)
+        const formula = stateMatch ? stateMatch[1] : token
+        const state   = stateMatch ? stateMatch[2] : null
+
+        // Subscript digits that follow a letter or closing paren (formula digits)
+        const formulaParts = formula.split(/(\d+)/)
+        const formulaNodes = formulaParts.map((part, j) => {
+          if (/^\d+$/.test(part)) {
+            const prevChar = (formulaParts[j - 1] || '').slice(-1)
+            if (/[A-Za-z)]/.test(prevChar)) return <sub key={j}>{part}</sub>
+          }
+          return part
+        })
+
         return (
           <span key={i} style={{ whiteSpace: 'nowrap' }}>
-            {parts.map((part, j) => {
-              if (/^\d+$/.test(part)) {
-                const prevChar = (parts[j - 1] || '').slice(-1)
-                if (/[A-Za-z)]/.test(prevChar)) {
-                  return <sub key={j}>{part}</sub>
-                }
-              }
-              return part
-            })}
+            {formulaNodes}
+            {state && <span className="state-label">({state})</span>}
           </span>
         )
       })}

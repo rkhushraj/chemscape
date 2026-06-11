@@ -1,14 +1,10 @@
 import { resolveFormula, inferState, predictProducts } from './chemistry.js'
 
 export const EXAMPLE_REACTIONS = [
-  'CH4(g) + 2 O2(g) -> CO2(g) + 2 H2O(l)',
+  'Acetic acid + Sodium hydroxide -> Sodium acetate + Water',
   '2 H2(g) + O2(g) -> 2 H2O(l)',
-  'N2(g) + 3 H2(g) -> 2 NH3(g)',
-  'Acetic acid(aq) + Sodium hydroxide(aq) -> Sodium acetate(aq) + Water(l)',
-  'AgNO3(aq) + NaCl(aq) -> AgCl(s) + NaNO3(aq)',
+  'CH4 + O2',
   'Zn(s) + 2 HCl(aq) -> ZnCl2(aq) + H2(g)',
-  'Cu(s) + ZnSO4(aq) -> CuSO4(aq) + Zn(s)',
-  '2 KClO3(s) -> 2 KCl(s) + 3 O2(g)',
 ]
 
 export function parseReaction(input) {
