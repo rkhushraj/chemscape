@@ -365,7 +365,7 @@ export default function App() {
               )}
               {viewMode === 'electron-shells' && (
                 <div className="notice-banner">
-                  Showing valence (outermost) electrons only — like a Lewis structure
+                  Showing valence (outermost) electrons only — like a Lewis dot structure
                 </div>
               )}
             </div>
