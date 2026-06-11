@@ -146,16 +146,19 @@ export function resolveFormula(raw) {
   const trimmed = raw.trim()
   if (!trimmed) return null
 
-  if (/\s/.test(trimmed)) {
-    const lower = trimmed.toLowerCase()
-    return COMMON_NAMES[lower] ?? ELEMENT_NAME_FORMULAS[lower] ?? null
-  }
+  const lower = trimmed.toLowerCase()
 
-  // Already has an uppercase letter — assume it's cased correctly.
+  // Check common names first (handles "Water", "Ethanol", "Acetic acid", etc.)
+  const fromNames = COMMON_NAMES[lower] ?? ELEMENT_NAME_FORMULAS[lower]
+  if (fromNames) return fromNames
+
+  // Multi-word string not in common names — can't resolve
+  if (/\s/.test(trimmed)) return null
+
+  // Already has an uppercase letter — assume it's a formula
   if (/[A-Z]/.test(trimmed)) return trimmed
 
-  const lower = trimmed.toLowerCase()
-  return COMMON_NAMES[lower] ?? ELEMENT_NAME_FORMULAS[lower] ?? normalizeFormulaCase(lower)
+  return normalizeFormulaCase(lower)
 }
 
 // ── Number helpers ──────────────────────────────────────────────
