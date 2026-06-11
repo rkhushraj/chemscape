@@ -11,8 +11,8 @@ const ELECTRON_RADIUS = 0.045
 const ELECTRON_SPEED = 0.5
 
 const THEME_COLORS = {
-  dark: { bg: 0x080f0f, shell: '#2a5a55', electron: '#00e5c8' },
-  light: { bg: 0xf0faf8, shell: '#7abcb8', electron: '#009e8c' },
+  dark: { bg: 0x080f0f, shell: '#2d5858', electron: '#6bbaba' },
+  light: { bg: 0xf0faf8, shell: '#6a9898', electron: '#3d8080' },
 }
 const BOND_ELECTRON_COLOR = '#ff6b9d' // shared covalent pairs
 const SEA_ELECTRON_COLOR = '#ffd54a'  // delocalized metallic electrons

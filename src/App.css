@@ -171,7 +171,7 @@
 .search-input::placeholder { color: var(--text2); }
 
 .search-btn {
-  background: linear-gradient(135deg, var(--accent), #00c8b0);
+  background: linear-gradient(135deg, var(--accent), #6bbaba);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -626,7 +626,7 @@
   margin-top: 6px;
 }
 .step-btn {
-  background: linear-gradient(135deg, var(--accent), #00c8b0);
+  background: linear-gradient(135deg, var(--accent), #6bbaba);
   color: #fff;
   border: none;
   border-radius: 8px;
