@@ -1,0 +1,85 @@
+export const TOPICS = [
+  { id: 'periodic-table', label: 'Periodic Table' },
+  { id: 'electron-config', label: 'Electron Configuration' },
+  { id: 'bonding', label: 'Chemical Bonding' },
+  { id: 'naming', label: 'Naming Compounds' },
+  { id: 'reactions', label: 'Chemical Reactions' },
+  { id: 'stoichiometry', label: 'Stoichiometry' },
+]
+
+export const CARDS = [
+  // ── Periodic Table ──────────────────────────────────────────────
+  { id: 'pt1',  topic: 'periodic-table', q: 'What are the rows of the periodic table called?', a: 'Periods. Elements in the same period have the same number of electron shells.' },
+  { id: 'pt2',  topic: 'periodic-table', q: 'What are the columns of the periodic table called?', a: 'Groups (or families). Elements in the same group have similar chemical properties.' },
+  { id: 'pt3',  topic: 'periodic-table', q: 'What does the atomic number of an element tell you?', a: 'The number of protons in the nucleus. It uniquely identifies the element.' },
+  { id: 'pt4',  topic: 'periodic-table', q: 'What is the most reactive group of metals?', a: 'Group 1 — the alkali metals (Li, Na, K, Rb, Cs, Fr). They react vigorously with water.' },
+  { id: 'pt5',  topic: 'periodic-table', q: 'What are Group 17 elements called?', a: 'Halogens (F, Cl, Br, I, At). They are highly reactive nonmetals that form salts with metals.' },
+  { id: 'pt6',  topic: 'periodic-table', q: 'What are Group 18 elements called, and why are they special?', a: 'Noble gases (He, Ne, Ar, Kr, Xe, Rn). They have full outer shells, making them very unreactive.' },
+  { id: 'pt7',  topic: 'periodic-table', q: 'What general trend describes atomic radius as you move left to right across a period?', a: 'Atomic radius decreases. More protons pull electrons closer to the nucleus.' },
+  { id: 'pt8',  topic: 'periodic-table', q: 'What is electronegativity, and which element has the highest value?', a: 'Electronegativity is how strongly an atom attracts electrons in a bond. Fluorine (F) has the highest electronegativity.' },
+  { id: 'pt9',  topic: 'periodic-table', q: 'What trend describes ionization energy across a period (left to right)?', a: 'Ionization energy increases. It takes more energy to remove an electron as the nucleus pulls harder.' },
+  { id: 'pt10', topic: 'periodic-table', q: 'What are the elements between Groups 2 and 13 called?', a: 'Transition metals. They often have multiple oxidation states and form colorful compounds.' },
+  { id: 'pt11', topic: 'periodic-table', q: 'What does atomic mass represent?', a: 'The weighted average mass of all naturally occurring isotopes of an element, measured in atomic mass units (amu).' },
+  { id: 'pt12', topic: 'periodic-table', q: 'What is the symbol and atomic number of Gold?', a: 'Au, atomic number 79. Au comes from "Aurum," the Latin name for gold.' },
+
+  // ── Electron Configurationuration ──────────────────────────────────────
+  { id: 'ec1',  topic: 'electron-config', q: 'What are valence electrons?', a: 'Electrons in the outermost shell of an atom. They determine how the atom bonds with other atoms.' },
+  { id: 'ec2',  topic: 'electron-config', q: 'How many valence electrons does carbon have?', a: '4 valence electrons. Carbon is in Group 14 and can form 4 bonds.' },
+  { id: 'ec3',  topic: 'electron-config', q: 'What is the electron configuration of sodium (Na)?', a: '2, 8, 1 — or written as 1s² 2s² 2p⁶ 3s¹. It has 1 valence electron, which it easily loses.' },
+  { id: 'ec4',  topic: 'electron-config', q: 'What is the octet rule?', a: 'Atoms tend to gain, lose, or share electrons until they have 8 electrons in their outer shell (like a noble gas).' },
+  { id: 'ec5',  topic: 'electron-config', q: 'What is the exception to the octet rule for hydrogen?', a: 'Hydrogen only needs 2 electrons to fill its outer shell (the 1s orbital holds a maximum of 2).' },
+  { id: 'ec6',  topic: 'electron-config', q: 'What are the four types of atomic orbitals?', a: 's, p, d, and f. Each holds a different maximum number of electrons: s=2, p=6, d=10, f=14.' },
+  { id: 'ec7',  topic: 'electron-config', q: 'What is the electron configuration of chlorine (Cl, Z=17)?', a: '2, 8, 7 — needs 1 more electron to complete its outer shell, so it tends to gain 1 electron.' },
+  { id: 'ec8',  topic: 'electron-config', q: 'What is a Lewis dot structure?', a: 'A diagram showing an element symbol surrounded by dots representing its valence electrons.' },
+  { id: 'ec9',  topic: 'electron-config', q: 'How many valence electrons do noble gases have (except helium)?', a: '8 — a full outer shell, which is why they are stable and unreactive.' },
+  { id: 'ec10', topic: 'electron-config', q: 'What determines which group an element belongs to?', a: 'The number of valence electrons. Group 1 has 1, Group 2 has 2, Groups 13–18 have 3–8.' },
+
+  // ── Chemical Bonding ────────────────────────────────────────────
+  { id: 'b1',   topic: 'bonding', q: 'What is an ionic bond?', a: 'A bond formed when one atom transfers electrons to another, creating oppositely charged ions that attract each other. Usually between a metal and a nonmetal.' },
+  { id: 'b2',   topic: 'bonding', q: 'What is a covalent bond?', a: 'A bond formed when two atoms share electrons. Usually occurs between two nonmetals.' },
+  { id: 'b3',   topic: 'bonding', q: 'What is a polar covalent bond?', a: 'A covalent bond where electrons are shared unequally because one atom is more electronegative, creating partial charges (δ+ and δ−).' },
+  { id: 'b4',   topic: 'bonding', q: 'What is a nonpolar covalent bond?', a: 'A covalent bond where electrons are shared equally between two atoms of the same or similar electronegativity (e.g. H₂, O₂).' },
+  { id: 'b5',   topic: 'bonding', q: 'What is a metallic bond?', a: 'A bond where metal atoms release their valence electrons into a shared "sea of electrons," allowing metals to conduct electricity.' },
+  { id: 'b6',   topic: 'bonding', q: 'What is the difference between a single, double, and triple bond?', a: 'Single: 1 shared pair (e.g. H–H). Double: 2 shared pairs (e.g. O=O). Triple: 3 shared pairs (e.g. N≡N). More bonds = shorter and stronger.' },
+  { id: 'b7',   topic: 'bonding', q: 'What type of bond forms NaCl (table salt)?', a: 'An ionic bond. Sodium (Na) loses 1 electron to chlorine (Cl), forming Na⁺ and Cl⁻ ions.' },
+  { id: 'b8',   topic: 'bonding', q: 'Why does water (H₂O) have a bent shape?', a: 'Oxygen has 2 lone pairs of electrons that push the two O–H bonds downward, creating a 104.5° bond angle.' },
+  { id: 'b9',   topic: 'bonding', q: 'What are hydrogen bonds?', a: 'A special intermolecular attraction between a hydrogen atom bonded to N, O, or F and another N, O, or F atom. Responsible for water\'s high boiling point.' },
+  { id: 'b10',  topic: 'bonding', q: 'How does electronegativity difference determine bond type?', a: 'Difference < 0.5: nonpolar covalent. 0.5–1.7: polar covalent. > 1.7: ionic.' },
+
+  // ── Naming Compounds ───────────────────────────────────────────
+  { id: 'n1',   topic: 'naming', q: 'What is the name of NaCl?', a: 'Sodium chloride. For ionic compounds: name the metal (cation) first, then the nonmetal with "-ide" suffix.' },
+  { id: 'n2',   topic: 'naming', q: 'What is the name of MgO?', a: 'Magnesium oxide. Magnesium is always 2+ so no Roman numeral is needed.' },
+  { id: 'n3',   topic: 'naming', q: 'What is the name of FeCl₃?', a: 'Iron(III) chloride. Iron has variable charge, so we use Roman numerals to show the charge: Fe³⁺.' },
+  { id: 'n4',   topic: 'naming', q: 'What is the name of CO₂?', a: 'Carbon dioxide. For molecular (covalent) compounds, use prefixes: mono-, di-, tri-, tetra-, etc.' },
+  { id: 'n5',   topic: 'naming', q: 'What is the formula for dinitrogen pentoxide?', a: 'N₂O₅. Di = 2 nitrogens, penta = 5 oxygens.' },
+  { id: 'n6',   topic: 'naming', q: 'What does the "-ate" suffix indicate in an ion name?', a: 'A polyatomic ion containing oxygen (an oxyanion), e.g. sulfate (SO₄²⁻), nitrate (NO₃⁻).' },
+  { id: 'n7',   topic: 'naming', q: 'What is the formula for ammonium nitrate?', a: 'NH₄NO₃. Ammonium is NH₄⁺ (charge +1), nitrate is NO₃⁻ (charge −1).' },
+  { id: 'n8',   topic: 'naming', q: 'What is the name of H₂SO₄?', a: 'Sulfuric acid. When acids are dissolved in water, name them based on their anion: sulfate → sulfuric acid.' },
+  { id: 'n9',   topic: 'naming', q: 'What is the name of HCl dissolved in water?', a: 'Hydrochloric acid. Binary acids (H + nonmetal) use the prefix "hydro-" and suffix "-ic acid".' },
+  { id: 'n10',  topic: 'naming', q: 'What is the formula for calcium phosphate?', a: 'Ca₃(PO₄)₂. Ca is 2+, phosphate (PO₄) is 3−. Cross-multiply charges to balance: Ca₃(PO₄)₂.' },
+
+  // ── Chemical Reactions ─────────────────────────────────────────
+  { id: 'r1',   topic: 'reactions', q: 'What are the 5 main types of chemical reactions?', a: 'Synthesis (A+B→AB), Decomposition (AB→A+B), Single Displacement (A+BC→AC+B), Double Displacement (AB+CD→AD+CB), and Combustion.' },
+  { id: 'r2',   topic: 'reactions', q: 'What is the law of conservation of mass?', a: 'Matter cannot be created or destroyed in a chemical reaction. The total mass of reactants equals the total mass of products.' },
+  { id: 'r3',   topic: 'reactions', q: 'What is a combustion reaction?', a: 'A reaction where a fuel (usually a hydrocarbon) reacts with oxygen (O₂) to produce CO₂ and H₂O, releasing heat and light.' },
+  { id: 'r4',   topic: 'reactions', q: 'What is an acid-base neutralization reaction?', a: 'A reaction between an acid and a base that produces a salt and water. Example: HCl + NaOH → NaCl + H₂O.' },
+  { id: 'r5',   topic: 'reactions', q: 'What does it mean to balance a chemical equation?', a: 'Ensuring the number of atoms of each element is the same on both sides of the equation, following conservation of mass.' },
+  { id: 'r6',   topic: 'reactions', q: 'Balance this equation: H₂ + O₂ → H₂O', a: '2H₂ + O₂ → 2H₂O. We need 2 water molecules to balance the 2 oxygen atoms from O₂.' },
+  { id: 'r7',   topic: 'reactions', q: 'What is an exothermic reaction?', a: 'A reaction that releases energy (usually heat) to the surroundings. The products have less energy than the reactants. Example: combustion.' },
+  { id: 'r8',   topic: 'reactions', q: 'What is an endothermic reaction?', a: 'A reaction that absorbs energy from the surroundings. The products have more energy than the reactants. Example: photosynthesis.' },
+  { id: 'r9',   topic: 'reactions', q: 'What are the signs that a chemical reaction has occurred?', a: 'Color change, gas produced (bubbling), precipitate formed, temperature change, or light emitted.' },
+  { id: 'r10',  topic: 'reactions', q: 'What is a precipitation reaction?', a: 'A double displacement reaction where two aqueous solutions react to form an insoluble solid (precipitate). Example: AgNO₃ + NaCl → AgCl↓ + NaNO₃.' },
+  { id: 'r11',  topic: 'reactions', q: 'What are the state symbols used in chemical equations?', a: '(s) = solid, (l) = liquid, (g) = gas, (aq) = aqueous (dissolved in water).' },
+
+  // ── Stoichiometry ──────────────────────────────────────────────
+  { id: 's1',   topic: 'stoichiometry', q: 'What is a mole?', a: 'A unit representing 6.022 × 10²³ particles (Avogadro\'s number). Like a "dozen" but for atoms and molecules.' },
+  { id: 's2',   topic: 'stoichiometry', q: 'What is molar mass?', a: 'The mass of one mole of a substance, in grams. Numerically equal to the atomic/molecular mass in amu (found on the periodic table).' },
+  { id: 's3',   topic: 'stoichiometry', q: 'How do you convert grams to moles?', a: 'Divide by molar mass: moles = mass (g) ÷ molar mass (g/mol).' },
+  { id: 's4',   topic: 'stoichiometry', q: 'What is the molar mass of water (H₂O)?', a: '18 g/mol. H = 1 g/mol × 2 = 2, O = 16 g/mol × 1 = 16. Total = 18 g/mol.' },
+  { id: 's5',   topic: 'stoichiometry', q: 'What is a mole ratio?', a: 'The ratio of moles of one substance to another in a balanced equation. Used to convert between amounts of reactants and products.' },
+  { id: 's6',   topic: 'stoichiometry', q: 'What is the limiting reagent?', a: 'The reactant that runs out first in a reaction, limiting how much product can form. The other reactant is in excess.' },
+  { id: 's7',   topic: 'stoichiometry', q: 'What is percent yield?', a: 'Percent yield = (actual yield ÷ theoretical yield) × 100%. It measures how efficient a reaction was.' },
+  { id: 's8',   topic: 'stoichiometry', q: 'How many molecules are in 2 moles of CO₂?', a: '2 × 6.022 × 10²³ = 1.204 × 10²⁴ molecules.' },
+  { id: 's9',   topic: 'stoichiometry', q: 'What is Avogadro\'s number?', a: '6.022 × 10²³. It is the number of atoms, molecules, or ions in one mole of a substance.' },
+  { id: 's10',  topic: 'stoichiometry', q: 'How many grams are in 3 moles of NaCl? (Na=23, Cl=35.5)', a: 'Molar mass of NaCl = 23 + 35.5 = 58.5 g/mol. 3 × 58.5 = 175.5 g.' },
+]

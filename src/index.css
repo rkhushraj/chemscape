@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -15,7 +16,7 @@
   --overlay-bg: rgba(8, 15, 26, 0.7);
   --overlay-border: rgba(255, 255, 255, 0.1);
   --radius: 12px;
-  --font: 'Inter', system-ui, sans-serif;
+  --font: 'DM Sans', system-ui, sans-serif;
 }
 
 [data-theme="light"] {
@@ -32,6 +33,10 @@
   --success: #8fe3ad;
   --overlay-bg: rgba(240, 248, 255, 0.75);
   --overlay-border: rgba(2, 132, 199, 0.12);
+}
+
+button, input, select, textarea {
+  font-family: var(--font);
 }
 
 html, body, #root {

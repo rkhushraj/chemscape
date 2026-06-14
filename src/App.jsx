@@ -7,6 +7,8 @@ import { parseReaction, EXAMPLE_REACTIONS } from './reactions.js'
 import { findElement } from './elements.js'
 import FormulaText, { ReactionText } from './Formula.jsx'
 import ChatWidget from './ChatWidget.jsx'
+import StudyPage from './StudyPage.jsx'
+import HomeScreen from './HomeScreen.jsx'
 import './App.css'
 
 const VIEW_MODES = [
@@ -21,13 +23,12 @@ const SUGGESTIONS = ['Water', 'H2O', 'Caffeine', 'CO2', 'Aspirin', 'O2', 'Glucos
 const ATOM_SUGGESTIONS = ['Hydrogen', 'Carbon', 'Oxygen', 'Sodium', 'Iron', 'Chlorine', 'Neon', 'Calcium']
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('chemscape-theme') || 'dark')
   const [mode, setMode] = useState('compound') // 'compound' | 'reaction'
+  const theme = 'dark'
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('chemscape-theme', theme)
-  }, [theme])
+    document.documentElement.setAttribute('data-theme', 'dark')
+  }, [])
 
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,6 +48,8 @@ export default function App() {
   const [atomResult, setAtomResult] = useState(null)
   const [atomError, setAtomError] = useState(null)
   const atomViewerRef = useRef(null)
+
+  const [screen, setScreen] = useState('home') // 'home' | 'explore' | 'study'
 
   const search = useCallback(async (q) => {
     const trimmed = q.trim()
@@ -111,9 +114,9 @@ export default function App() {
 
   return (
     <>
-    <div className="app">
+    <div className={`app${screen !== 'explore' ? ' app-hidden' : ''}`}>
       <div className="sidebar">
-        <div className="brand">
+        <div className="brand" onClick={() => setScreen('home')} style={{ cursor: 'pointer' }}>
           <div className="element-tile brand-icon">
             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="24" cy="24" rx="20" ry="8" stroke="currentColor" strokeWidth="2.5" />
@@ -126,30 +129,6 @@ export default function App() {
             <span className="brand-name">ChemScape</span>
             <span className="brand-credit">by Rohan Khushraj</span>
           </div>
-          <button
-            className="theme-toggle"
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            aria-label="Toggle light/dark theme"
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f8d76b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5" fill="#f8d76b" fillOpacity="0.25"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
-          </button>
         </div>
 
         <div className="mode-switch">
@@ -461,12 +440,14 @@ export default function App() {
         )}
       </div>
     </div>
-    <ChatWidget context={{
+    {screen === 'home' && <HomeScreen onExplore={() => setScreen('explore')} onStudy={() => setScreen('study')} />}
+    {screen === 'study' && <StudyPage onClose={() => setScreen('home')} />}
+    {screen === 'explore' && <ChatWidget context={{
       mode,
       compound: mode === 'compound' ? (info?.IUPACName || query || null) : null,
       atom: mode === 'atom' ? (atomResult?.name || null) : null,
       reaction: mode === 'reaction' ? (reactionInput || null) : null,
-    }} />
+    }} />}
     </>
   )
 }
