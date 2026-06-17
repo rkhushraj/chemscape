@@ -2,16 +2,13 @@
   <rect width="1200" height="630" fill="#080f1a"/>
 
   <!-- Atom logo -->
-  <g transform="translate(600, 240)">
-    <ellipse rx="130" ry="52" stroke="#38bdf8" stroke-width="10"/>
-    <ellipse rx="130" ry="52" stroke="#38bdf8" stroke-width="10" transform="rotate(60)"/>
-    <ellipse rx="130" ry="52" stroke="#38bdf8" stroke-width="10" transform="rotate(120)"/>
-    <circle r="26" fill="#38bdf8"/>
+  <g transform="translate(600, 220)">
+    <ellipse rx="90" ry="36" stroke="#38bdf8" stroke-width="8"/>
+    <ellipse rx="90" ry="36" stroke="#38bdf8" stroke-width="8" transform="rotate(60)"/>
+    <ellipse rx="90" ry="36" stroke="#38bdf8" stroke-width="8" transform="rotate(120)"/>
+    <circle r="18" fill="#38bdf8"/>
   </g>
 
   <!-- ChemScape text -->
-  <text x="600" y="420" text-anchor="middle" font-family="system-ui, sans-serif" font-size="88" font-weight="700" fill="#e0f2fe" letter-spacing="-2">ChemScape</text>
-
-  <!-- Subtitle -->
-  <text x="600" y="490" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="400" fill="#38bdf8">by Rohan Khushraj</text>
+  <text x="600" y="390" text-anchor="middle" font-family="system-ui, sans-serif" font-size="100" font-weight="700" fill="#e0f2fe" letter-spacing="-2">ChemScape</text>
 </svg>
